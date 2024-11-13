@@ -11,6 +11,10 @@ int subtract(int a, int b) {
 
 PYBIND11_MODULE(simplegrad, m) {
     m.doc() = "Math operations module"; // Module docstring
+    m.attr("__version__") = "0.1.0";
+    m.attr("__author__") = "Your Name";
+    m.attr("__email__") = "your.email@example.com";
+    
 
     m.def("add",
          &add,
