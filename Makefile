@@ -40,7 +40,7 @@ run:
 clean:
 	rm -rf $(VENV)
 	rm -rf build
-	rm -rf rm -rf *.egg-info/
+	rm -rf *.egg-info/
 
 .PHONY: help
 help:
