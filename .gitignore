@@ -6,6 +6,8 @@ __pycache__/
 *.egg
 dist/
 
+.github/
+
 # Byte-compiled / optimized / DLL files
 *.pyc
 *.pyo
