@@ -4,6 +4,6 @@ setup(
     name="simplegrad",
     packages=find_packages(),
     package_data={
-        "simplegrad": ["./build/*.so", "*.pyd"],
+        "simplegrad": ["*.so", "*.pyd"],
     },
 )
