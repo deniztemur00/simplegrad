@@ -9,6 +9,10 @@ include_directories(${Python3_INCLUDE_DIRS})
 # Find pybind11 package
 find_package(pybind11 REQUIRED)
 
+file(GLOB SOURCES "src-simplegrad/src/*.cpp")
+file(GLOB HEADERS "src-simplegrad/include/*.h")
+
+
 # Set the source directory
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src-simplegrad)
 
@@ -16,7 +20,7 @@ set(SRC_DIR ${CMAKE_SOURCE_DIR}/src-simplegrad)
 include_directories(${pybind11_INCLUDE_DIRS})
 
 # Add the pybind11 module
-pybind11_add_module(simplegrad ${SRC_DIR}/simplegrad.cpp)
+pybind11_add_module(simplegrad ${SRC_DIR}/simplegrad.cpp ${SOURCES} ${HEADERS})
 
 set_target_properties(simplegrad PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/py-simplegrad/module/
