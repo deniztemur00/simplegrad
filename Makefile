@@ -15,7 +15,7 @@ requirements: .venv
 
 .PHONY: install
 install:
-	$(BIN)/python -m pip install -e .
+	$(BIN)/python -m pip install -e py-simplegrad/
 
 .PHONY: build
 build: .venv
@@ -30,17 +30,18 @@ build-release: .venv
 
 .PHONY: test
 test:
-	$(BIN)/python -m pytest -v
+	$(BIN)/pytest py-simplegrad/tests -v
 
 .PHONY: run
 run:
-	$(BIN)/python $(PY_FOLDER)/main.py
+	$(BIN)/python $(PY_FOLDER)/simplegrad/main.py
 
 .PHONY: clean
 clean:
 	rm -rf $(VENV)
 	rm -rf build
 	rm -rf *.egg-info/
+	rm -rf .pytest_cache/
 
 .PHONY: help
 help:
