@@ -1,5 +1,6 @@
-#include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
+#include <pybind11/pybind11.h>
+
 #include "include/space.h"
 
 namespace py = pybind11;
@@ -10,7 +11,7 @@ PYBIND11_MODULE(simplegrad, m) {
         .def(py::init<float>())
         .def(py::self + py::self)
         .def(py::self * py::self)
-        .def("__pow__", &Space::pow)    
+        .def("__pow__", &Space::pow)
         .def("__neg__", &Space::neg)
         .def("__sub__", &Space::sub)
         .def("__truediv__", &Space::truediv)
@@ -20,8 +21,8 @@ PYBIND11_MODULE(simplegrad, m) {
         .def("__rtruediv__", &Space::rtruediv)
         .def("__repr__", &Space::print)
         .def("relu", &Space::relu)
-        .def("backward", &Space::backward);
-        //.def("data", (float(Space::*)()) & Space::data)
-        //.def("grad", (float(Space::*)()) & Space::grad)
-        //.def("op", (const std::string& (Space::*)()) & Space::op)
+        .def("backward", &Space::backward)
+        .def("data", (float(Space::*)()) & Space::data)
+        .def("grad", (float(Space::*)()) & Space::grad)
+        .def("op", (const std::string& (Space::*)()) & Space::op);
 }
