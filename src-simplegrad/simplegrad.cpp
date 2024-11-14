@@ -1,42 +1,27 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
+#include "include/space.h"
+
 namespace py = pybind11;
 
-int add(int a, int b) {
-    return a + b;
-}
-
-int subtract(int a, int b) {
-    return a - b;
-}
-
 PYBIND11_MODULE(simplegrad, m) {
-    m.doc() = "Math operations module"; // Module docstring
-    
-    m.def("add",
-         &add,
-         py::arg("a"), py::arg("b"),
-         R"pbdoc(
-         Add two integers.
-         
-         Parameters:
-         a (int): The first integer to add.
-         b (int): The second integer to add.
-         
-         Returns:
-         int: The sum of a and b.
-         )pbdoc");
-
-    m.def("subtract",
-         &subtract,
-         py::arg("a"), py::arg("b"),
-         R"pbdoc(
-         Subtract two integers.
-         
-         Parameters:
-         a (int): The integer to subtract from.
-         b (int): The integer to subtract.
-         
-         Returns:
-         int: The difference of a and b.
-         )pbdoc");
+    m.doc() = "Auto gradient module";  // Module docstring
+    py::class_<Space>(m, "Space")
+        .def(py::init<float>())
+        .def(py::self + py::self)
+        .def(py::self * py::self)
+        .def("__pow__", &Space::pow)    
+        .def("__neg__", &Space::neg)
+        .def("__sub__", &Space::sub)
+        .def("__truediv__", &Space::truediv)
+        .def("__radd__", &Space::radd)
+        .def("__rsub__", &Space::rsub)
+        .def("__rmul__", &Space::rmul)
+        .def("__rtruediv__", &Space::rtruediv)
+        .def("__repr__", &Space::print)
+        .def("relu", &Space::relu)
+        .def("backward", &Space::backward);
+        //.def("data", (float(Space::*)()) & Space::data)
+        //.def("grad", (float(Space::*)()) & Space::grad)
+        //.def("op", (const std::string& (Space::*)()) & Space::op)
 }
