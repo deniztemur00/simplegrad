@@ -10,6 +10,7 @@ PYBIND11_MODULE(simplegrad, m) {
     py::class_<Space>(m, "Space")
         .def(py::init<float>())
         .def(py::self + py::self)
+        .def(py::self + float())
         .def(py::self * py::self)
         .def("__pow__", &Space::pow)
         .def("__neg__", &Space::neg)
