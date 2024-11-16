@@ -72,13 +72,14 @@ std::string Space::print() const {
 // Operators
 Space Space::operator+(const Space& other) const {
     Space out(this->pimpl->get_data() + other.pimpl->get_data());
-    out.pimpl->op = "+";
-    out.pimpl->prev = std::make_tuple(
-        const_cast<Space*>(this),
-        const_cast<Space*>(&other));
 
-    out.pimpl->backward = [&out]() {
-        auto [a, b] = out.pimpl->prev;
+    Space* a = const_cast<Space*>(this);
+    Space* b = const_cast<Space*>(&other);
+    out.pimpl->op = "+";
+    out.pimpl->prev = std::make_tuple(a,b);
+       
+
+    out.pimpl->backward = [a,b,&out]() {
         a->pimpl->grad += out.pimpl->grad;
         b->pimpl->grad += out.pimpl->grad;
     };
@@ -92,15 +93,20 @@ Space Space::operator+(float other) const {
 
 Space Space::operator*(const Space& other) const {
     Space out(this->pimpl->get_data() * other.pimpl->get_data());
-    out.pimpl->op = "*";
-    out.pimpl->prev = std::make_tuple(
-        const_cast<Space*>(this),
-        const_cast<Space*>(&other));
 
-    out.pimpl->backward = [&out]() {
-        auto [a, b] = out.pimpl->prev;
-        a->pimpl->grad += b->pimpl->get_data() * out.pimpl->grad;
-        b->pimpl->grad += a->pimpl->get_data() * out.pimpl->grad;
+    // Store raw pointers
+    Space* a = const_cast<Space*>(this);
+    Space* b = const_cast<Space*>(&other);
+
+    out.pimpl->prev = std::make_tuple(a, b);
+    out.pimpl->op = "*";
+
+    // Capture values instead of references
+    float out_data = out.pimpl->get_data();
+    out.pimpl->backward = [a, b, out_data]() {
+        a->pimpl->grad += b->pimpl->get_data();
+
+        b->pimpl->grad += a->pimpl->get_data();
     };
 
     return out;
@@ -151,12 +157,17 @@ Space Space::sub(const Space& other) const {
 }
 
 Space Space::truediv(const Space& other) const {
+    other.pimpl->data += 1e-9;  // Avoid division by zero
     return *this * other.pow(-1);
 }
 
 Space Space::radd(const Space& other) const {
     return other + *this;
 }
+
+// Space Space::radd(float other) const {
+//     return  Space(other) + *this;
+// }
 
 Space Space::rsub(const Space& other) const {
     return other + (-*this);
@@ -167,6 +178,7 @@ Space Space::rmul(const Space& other) const {
 }
 
 Space Space::rtruediv(const Space& other) const {
+    other.pimpl->data += 1e-9;
     return other * this->pow(-1);
 }
 
@@ -187,16 +199,36 @@ Space Space::relu() {
 }
 
 void Space::backward() {
-    // Build topological ordering
     std::vector<Space*> topo;
     std::set<Space*> visited;
+
+    if (!pimpl) {
+        std::cout << "Null pimpl in backward()" << std::endl;
+        return;
+    }
+
+    std::cout << "Starting backward pass for node with data: " << pimpl->data << std::endl;
     pimpl->build_topo(this, topo, visited);
 
-    // Initialize gradient of root to 1.0
-    this->pimpl->grad = 1.0;
+    pimpl->grad = 1.0;
 
-    // Backpropagate in reverse topological order
+    std::cout << "Topo size: " << topo.size() << std::endl;
+
     for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-        (*it)->pimpl->backward();
+        Space* node = *it;
+        if (!node || !node->pimpl) {
+            std::cout << "Null node or pimpl in backward loop" << std::endl;
+            continue;
+        }
+
+        std::cout << "Processing node with data: " << node->pimpl->data
+                  << " grad: " << node->pimpl->grad << std::endl;
+
+        if (node->pimpl->backward) {
+            node->pimpl->backward();
+        } else {
+            std::cout << "No backward function for node with data: "
+                      << node->pimpl->data << std::endl;
+        }
     }
 }
