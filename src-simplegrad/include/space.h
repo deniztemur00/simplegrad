@@ -31,6 +31,7 @@ class Space {
     Space sub(const Space& other) const;
     Space truediv(const Space& other) const;
     Space radd(const Space& other) const;
+    //Space radd(float other) const;
     Space rsub(const Space& other) const;
     Space rmul(const Space& other) const;
     Space rtruediv(const Space& other) const;
@@ -40,8 +41,8 @@ class Space {
     void backward();
 
     // Prevent copying, allow moving
-    Space(const Space&) = delete;
-    Space& operator=(const Space&) = delete;
+    Space(const Space& other);
+    //Space& operator=(const Space&) = default;
     Space(Space&&) noexcept;
     Space& operator=(Space&&) noexcept;
 

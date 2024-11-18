@@ -7,11 +7,9 @@ class Space::Impl {
     float grad;
     std::string op;
     std::function<void()> backward;
-    std::tuple<Space*, Space*> prev;
+    std::set<Space*> prev;
     Impl(float d)
-        : data(d), grad(0.0), op(""), backward(nullptr) {
-        prev = std::make_tuple(nullptr, nullptr);
-    }
+        : data(d), grad(0.0), op(""), backward(nullptr) {}
     ~Impl() {
     }
 
@@ -29,9 +27,10 @@ class Space::Impl {
     void build_topo(Space* v, std::vector<Space*>& topo, std::set<Space*>& visited) {
         if (visited.find(v) == visited.end()) {
             visited.insert(v);
-            auto [prev1, prev2] = v->pimpl->prev;
-            if (prev1) build_topo(prev1, topo, visited);
-            if (prev2) build_topo(prev2, topo, visited);
+            // Iterate through all previous nodes in prev set
+            for (Space* child : v->pimpl->prev) {
+                build_topo(child, topo, visited);
+            }
             topo.push_back(v);
         }
     }
@@ -45,6 +44,7 @@ Space::~Space() = default;
 
 Space::Space(Space&&) noexcept = default;
 Space& Space::operator=(Space&&) noexcept = default;
+Space::Space(const Space& other) : pimpl(new Impl(*other.pimpl)) {}
 
 // Accessors
 const float Space::data() {
@@ -76,12 +76,18 @@ Space Space::operator+(const Space& other) const {
     Space* a = const_cast<Space*>(this);
     Space* b = const_cast<Space*>(&other);
     out.pimpl->op = "+";
-    out.pimpl->prev = std::make_tuple(a,b);
-       
+    out.pimpl->prev.insert(a);
+    out.pimpl->prev.insert(b);
 
-    out.pimpl->backward = [a,b,&out]() {
-        a->pimpl->grad += out.pimpl->grad;
-        b->pimpl->grad += out.pimpl->grad;
+    // Store raw pointer to implementation
+    auto* out_raw = out.pimpl.get();
+
+    out.pimpl->backward = [a, b, out_raw] {
+        std::cout << "Add backward: out.grad = " << out_raw->grad << std::endl;
+        // Gradients flow equally to both inputs
+        a->pimpl->grad += out_raw->grad;
+        b->pimpl->grad += out_raw->grad;
+        std::cout << "Updated grads: a=" << a->pimpl->grad << " b=" << b->pimpl->grad << std::endl;
     };
 
     return out;
@@ -98,15 +104,17 @@ Space Space::operator*(const Space& other) const {
     Space* a = const_cast<Space*>(this);
     Space* b = const_cast<Space*>(&other);
 
-    out.pimpl->prev = std::make_tuple(a, b);
-    out.pimpl->op = "*";
+    out.pimpl->prev.insert(a);
+    out.pimpl->prev.insert(b);
 
     // Capture values instead of references
-    float out_data = out.pimpl->get_data();
-    out.pimpl->backward = [a, b, out_data]() {
-        a->pimpl->grad += b->pimpl->get_data();
-
-        b->pimpl->grad += a->pimpl->get_data();
+    auto* out_raw = out.pimpl.get();
+    out.pimpl->backward = [a, b, out_raw] {  // Capture by value
+        std::cout << "Mul backward: out.grad = " << out_raw->grad << std::endl;
+        // Match Python's gradient computation exactly
+        a->pimpl->grad += b->pimpl->get_data() * out_raw->grad;  // self.grad += other.data * out.grad
+        b->pimpl->grad += a->pimpl->get_data() * out_raw->grad;  // other.grad += self.data * out.grad
+        std::cout << "Updated grads: a=" << a->pimpl->grad << " b=" << b->pimpl->grad << std::endl;
     };
 
     return out;
@@ -121,13 +129,14 @@ Space Space::pow(float other) const {
     out.pimpl->op = "^";
 
     Space* base = const_cast<Space*>(this);
-    out.pimpl->prev = std::make_tuple(base, nullptr);
+    out.pimpl->prev.insert(base);
 
-    out.pimpl->backward = [&base, other, &out]() {
+    auto* out_raw = out.pimpl.get();
+    out.pimpl->backward = [base, other, out_raw]() {
         // derivative of x^n is n * x^(n-1)
         base->pimpl->grad += other *
                              std::pow(base->pimpl->get_data(), other - 1) *
-                             out.pimpl->grad;
+                             out_raw->grad;
     };
 
     return out;
@@ -136,13 +145,12 @@ Space Space::pow(float other) const {
 Space Space::operator-() const {
     Space out(-this->pimpl->get_data());
     out.pimpl->op = "-";
-    out.pimpl->prev = std::make_tuple(
-        const_cast<Space*>(this),
-        nullptr);
+    Space* base = const_cast<Space*>(this);
+    out.pimpl->prev.insert(base);
 
-    out.pimpl->backward = [&out]() {
-        auto [a, b] = out.pimpl->prev;
-        a->pimpl->grad -= out.pimpl->grad;
+    auto* out_raw = out.pimpl.get();
+    out.pimpl->backward = [base, out_raw]() {
+        base->pimpl->grad -= out_raw->grad;
     };
 
     return out;
@@ -186,13 +194,11 @@ Space Space::rtruediv(const Space& other) const {
 Space Space::relu() {
     Space out(std::max(0.0f, this->pimpl->get_data()));
     out.pimpl->op = "ReLU";
-    out.pimpl->prev = std::make_tuple(
-        const_cast<Space*>(this),
-        nullptr);
+    Space* base = const_cast<Space*>(this);
+    out.pimpl->prev.insert(base);
 
-    out.pimpl->backward = [&out]() {
-        auto [a, b] = out.pimpl->prev;
-        a->pimpl->grad += (out.pimpl->data > 0) * out.pimpl->grad;
+    out.pimpl->backward = [base, &out]() {
+        base->pimpl->grad += (out.pimpl->data > 0) * out.pimpl->grad;
     };
 
     return out;
@@ -207,28 +213,32 @@ void Space::backward() {
         return;
     }
 
-    std::cout << "Starting backward pass for node with data: " << pimpl->data << std::endl;
     pimpl->build_topo(this, topo, visited);
 
+    // Initialize gradient of root to 1.0
     pimpl->grad = 1.0;
 
     std::cout << "Topo size: " << topo.size() << std::endl;
 
+    // Iterate through nodes in reverse topological order
     for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
         Space* node = *it;
         if (!node || !node->pimpl) {
-            std::cout << "Null node or pimpl in backward loop" << std::endl;
+            std::cout << "Null node or pimpl encountered" << std::endl;
             continue;
         }
 
-        std::cout << "Processing node with data: " << node->pimpl->data
+        std::cout << "Processing node: " << node->print()
+                  << " at " << node
                   << " grad: " << node->pimpl->grad << std::endl;
 
         if (node->pimpl->backward) {
-            node->pimpl->backward();
-        } else {
-            std::cout << "No backward function for node with data: "
-                      << node->pimpl->data << std::endl;
+            try {
+                node->pimpl->backward();
+            } catch (const std::exception& e) {
+                std::cout << "Exception in backward: " << e.what() << std::endl;
+            }
         }
+        std::cout << "After backward: " << node->print() << std::endl;
     }
 }
