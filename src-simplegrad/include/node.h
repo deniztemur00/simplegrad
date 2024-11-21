@@ -1,35 +1,43 @@
-#include <memory>
-#include <vector>
+#include <cmath>
 #include <functional>
-#include <string>
-#include <set>
 #include <iostream>
+#include <memory>
+#include <set>
 #include <sstream>
+#include <string>
+#include <vector>
 
 class Node {
-private:
+   private:
     double data;
     double grad;
     std::vector<std::weak_ptr<Node>> _prev;
     std::function<void()> _backward;
     std::string _op;
 
-public:
-    Node(double data);
+    static std::vector<Node*> graph;
+   public:
+    // Constructors
+    Node(double data, std::vector<Node> _prev = {}, std::string _op = "");
 
-    Node(double data, std::vector<std::shared_ptr<Node>> _prev, std::string _op);
+    // Getters
+    double get_data() const;
+    double get_grad() const;
+    std::string get_op() const;
 
     // Overloaded operators
-    Node operator+(const Node& other) const;
+    Node operator+(Node& other) const;
     Node operator+(double other) const;
     Node operator-() const;
     Node operator-(const Node& other) const;
     Node operator/(const Node& other) const;
     Node operator*(const Node& other) const;
     Node operator*(double other) const;
-    Node radd(double other, const Node& self);
-    Node rsub(double other, const Node& self);
-    Node rmul(double other, const Node& self);
+    Node radd(const Node& self);
+    Node rsub(const Node& self);
+    Node rmul(const Node& self);
+    Node rdiv(const Node& other);
+    Node rtruediv(const Node& other);
     Node pow(double exponent) const;
     Node neg() const;
     Node sub(const Node& other) const;
