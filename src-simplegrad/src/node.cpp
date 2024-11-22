@@ -1,12 +1,12 @@
 #include "../include/node.h"
 
-Node::Node(double data, std::vector<Node*> _prev, std::string _op)
+Node::Node(double data, std::vector<Node> _prev, std::string _op)
     : data(data), grad(0.0), _backward([] {}), _op(_op) {
-    for (auto& p : _prev) {
-        graph.emplace_back(p);
-        std::cout << "Prev: " << p->data << std::endl;
+    //std::cout << "Constructed Node" << print() << std::endl;
+    for (auto& node : _prev) {
+        //std::cout << "Adding previous node" << node.print() << std::endl;
+        this->_prev.emplace_back(node);
     }
-    std::cout << "Constructed Node for Data: " << data << std::endl;
 }
 
 double Node::get_data() const {
@@ -33,15 +33,31 @@ std::string Node::print() const {
     return ss.str();
 }
 
-Node Node::operator+(Node& other) const {
-    Node out = Node(data + other.data, std::vector<Node*>{this, &other}, "+");
+Node Node::operator+(const Node& other) const {
+    Node out(data + other.data, { *this, other }, "+");
     
+    // Store both node pointers and output node pointer
+    const Node* self_ptr = this;
+    const Node* other_ptr = &other;
+    Node* out_ptr = &out;  // Add pointer to output node
+    
+    out.set_backward([out_ptr, self_ptr, other_ptr]() mutable {
+        // Get current gradient from output node
+        double current_grad = out_ptr->grad;
+        std::cout <<"Current grad: " << current_grad << std::endl;
+        const_cast<Node*>(self_ptr)->grad += current_grad;
+        const_cast<Node*>(other_ptr)->grad += current_grad;
+
+    });
+
+    return out;
 }
 
 Node Node::operator+(double other) const {
     return *this + Node(other);
 }
 
+/*
 Node Node::operator*(const Node& other) const {
     auto shared_this = std::make_shared<Node>(*this);
     auto shared_other = std::make_shared<Node>(other);
@@ -51,7 +67,7 @@ Node Node::operator*(const Node& other) const {
     out->set_backward([shared_this, shared_other, out]() {
         shared_this->grad += shared_other->data * out->grad;
         shared_other->grad += shared_this->data * out->grad;
-        std::cout << "Backward: " << shared_this->grad << " " << shared_other->grad << std::endl;
+        //std::cout << "Backward: " << shared_this->grad << " " << shared_other->grad << std::endl;
     });
 
     return *out;
@@ -124,70 +140,34 @@ Node Node::relu() const {
 
     return *out;
 }
+*/
 
 void Node::backward() {
-    this->grad = 1.0;
-    for (auto it = graph.rbegin(); it != graph.rend(); ++it) {
-        (*it)->_backward();
-    }
-}
-
-/*
-void Node::backward() {
-    std::cout << "\n=== Starting backward() ===\n";
-
     // Topological sort
-    std::vector<std::shared_ptr<Node>> topo;
-    std::set<std::shared_ptr<Node>> visited;
+    std::vector<Node*> topo;
+    std::set<Node*> visited;
 
-    std::function<void(std::shared_ptr<Node>)> build_topo;
-
-    build_topo = [&](std::shared_ptr<Node> v) {
-        std::cout << "Processing node with value: " << v->data << std::endl;
-
-        if (visited.find(v) == visited.end()) {
-            std::cout << "  Node not visited before, adding to visited set\n";
+    // Define DFS function for topological sort
+    std::function<void(Node*)> build_topo = [&](Node* v) {
+        if (visited.count(v) == 0) {
             visited.insert(v);
-
-            std::cout << "  Checking " << v->_prev.size() << " previous nodes\n";
-            for (auto& w : v->_prev) {
-                if (auto sp = w.lock()) {
-                    std::cout << "    Following edge to node with value: " << sp->data << std::endl;
-                    build_topo(sp);
-                } else {
-                    std::cout << "    Warning: Weak pointer expired\n";
-                }
+            for (auto& child : v->_prev) {
+                build_topo(&child);
             }
-            std::cout << "  Adding node " << v->data << " to topological sort\n";
-            topo.push_back(v);
-        } else {
-            std::cout << "  Node already visited, skipping\n";
+            //std::cout << "Adding node to topo" << v->print() << std::endl;
+            topo.emplace_back(v);
         }
     };
 
-    std::cout << "Starting topological sort from root node\n";
-    build_topo(std::make_shared<Node>(*this));
 
-    std::cout << "\nTopological sort complete. Nodes in order:\n";
-    for (const auto& node : topo) {
-        std::cout << node->data << " ";
-    }
-    std::cout << "\n\nStarting backward pass\n";
+    build_topo(this);
+
 
     this->grad = 1.0;
-    std::cout << "Set root gradient to 1.0\n";
 
+ 
     for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-        std::cout << "Processing node with value: " << (*it)->data << ", gradient: " << (*it)->grad << std::endl;
-        if ((*it)->_backward) {
-            std::cout << "  Calling _backward()\n";
-            (*it)->_backward();
-        } else {
-            std::cout << "  No backward function defined\n";
-        }
-        std::cout << "  Node gradient after backward: " << (*it)->grad << std::endl;
+        std::cout << "Backward on node" << (*it)->print() << std::endl;
+        (*it)->_backward();
     }
-
-    std::cout << "=== Finished backward() ===\n\n";
 }
-*/

@@ -11,11 +11,10 @@ class Node {
    private:
     double data;
     double grad;
-    std::vector<std::weak_ptr<Node>> _prev;
+    std::vector<Node> _prev;
     std::function<void()> _backward;
     std::string _op;
 
-    static std::vector<Node*> graph;
    public:
     // Constructors
     Node(double data, std::vector<Node> _prev = {}, std::string _op = "");
@@ -26,7 +25,7 @@ class Node {
     std::string get_op() const;
 
     // Overloaded operators
-    Node operator+(Node& other) const;
+    Node operator+(const Node& other) const;
     Node operator+(double other) const;
     Node operator-() const;
     Node operator-(const Node& other) const;
