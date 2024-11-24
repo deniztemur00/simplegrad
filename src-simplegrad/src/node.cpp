@@ -12,7 +12,7 @@ std::string Node::get_op() const {
     return _op;
 }
 
-void Node::set_backward(std::function<void()> backward_func) {
+void Node::set_backward(std::function<void(double)> backward_func) {
     _backward = backward_func;
 }
 
@@ -25,21 +25,19 @@ std::string Node::print() const {
 }
 
 Node Node::operator+(const Node& other) const {
-        auto self_ptr = std::make_shared<Node>(*this);
-        auto other_ptr = std::make_shared<Node>(other);
-        std::vector<std::shared_ptr<Node>> children = {self_ptr, other_ptr};
-        Node out(this->data + other.data, children, "+");
-        
-        // Capture the Node itself by reference so we can access its current gradient
-        out._backward = [out_ptr = &out, self_ptr, other_ptr]() {
-            double current_grad = out_ptr->grad;
-            std::cout << "Current grad in backward: " << current_grad << std::endl;
-            self_ptr->grad += current_grad;
-            other_ptr->grad += current_grad;
-        };
-        
-        return out;
-    }
+    auto self_ptr = std::make_shared<Node>(*this);
+    auto other_ptr = std::make_shared<Node>(other);
+    std::vector<std::shared_ptr<Node>> children = {self_ptr, other_ptr};
+    Node out(this->data + other.data, children, "+");
+
+    out._backward = [self_ptr, other_ptr](double out_grad) {
+        self_ptr->grad += out_grad;
+        other_ptr->grad += out_grad;
+        std::cout << "Backward: " << self_ptr->grad << " " << other_ptr->grad << std::endl;
+    };
+
+    return out;
+}
 
 Node Node::operator+(double other) const {
     return *this + Node(other);
@@ -131,24 +129,25 @@ Node Node::relu() const {
 */
 
 void Node::backward() {
-        std::vector<Node*> topo;
-        std::set<Node*> visited;
+    std::vector<Node*> topo;
+    std::set<Node*> visited;
 
-        std::function<void(Node*)> build_topo = [&](Node* v) {
-            if (visited.find(v) == visited.end()) {
-                visited.insert(v);
-                for (const auto& child : v->_prev) {
-                    build_topo(child.get());
-                }
-                topo.push_back(v);
+    std::function<void(Node*)> build_topo = [&](Node* v) {
+        if (visited.find(v) == visited.end()) {
+            visited.insert(v);
+            for (const auto& child : v->_prev) {
+                build_topo(child.get());
             }
-        };
-
-        build_topo(this);
-        this->grad = 1.0;
-
-        for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-            std::cout << "Processing backward on: " << (*it)->print() << std::endl;
-            (*it)->_backward();
+            topo.push_back(v);
         }
+    };
+
+    build_topo(this);
+    this->grad = 1.0;
+    std::cout << "This node: " << this->print() << std::endl;
+    for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
+        std::cout << "Processing backward on: " << (*it)->print() << std::endl;
+        (*it)->_backward((*it)->grad);
+        std::cout << "After backward: " << (*it)->print() << std::endl;
     }
+}

@@ -10,15 +10,15 @@
 class Node {
    private:
     double data;
-    double grad;
+    mutable double grad=0.0;
     std::vector<std::shared_ptr<Node>> _prev;
-    std::function<void()> _backward;
+    std::function<void(double)> _backward;
     std::string _op;
 
    public:
     // Constructors
     Node(double data, const std::vector<std::shared_ptr<Node>>& prev = {}, const std::string& op = "")
-        : data(data), grad(0.0), _prev(prev), _op(op), _backward([]() {}) {
+        : data(data), grad(0.0), _prev(prev), _op(op), _backward([](double) {}) {
     }
 
     // Getters
@@ -46,7 +46,7 @@ class Node {
 
     void backward();
 
-    void set_backward(std::function<void()> backward_func);
+    void set_backward(std::function<void(double)> backward_func);
 
     std::string print() const;
 };
