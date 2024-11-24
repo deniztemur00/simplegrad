@@ -1,14 +1,5 @@
 #include "../include/node.h"
 
-Node::Node(double data, std::vector<Node> _prev, std::string _op)
-    : data(data), grad(0.0), _backward([] {}), _op(_op) {
-    //std::cout << "Constructed Node" << print() << std::endl;
-    for (auto& node : _prev) {
-        //std::cout << "Adding previous node" << node.print() << std::endl;
-        this->_prev.emplace_back(node);
-    }
-}
-
 double Node::get_data() const {
     return data;
 }
@@ -34,24 +25,21 @@ std::string Node::print() const {
 }
 
 Node Node::operator+(const Node& other) const {
-    Node out(data + other.data, { *this, other }, "+");
-    
-    // Store both node pointers and output node pointer
-    const Node* self_ptr = this;
-    const Node* other_ptr = &other;
-    Node* out_ptr = &out;  // Add pointer to output node
-    
-    out.set_backward([out_ptr, self_ptr, other_ptr]() mutable {
-        // Get current gradient from output node
-        double current_grad = out_ptr->grad;
-        std::cout <<"Current grad: " << current_grad << std::endl;
-        const_cast<Node*>(self_ptr)->grad += current_grad;
-        const_cast<Node*>(other_ptr)->grad += current_grad;
-
-    });
-
-    return out;
-}
+        auto self_ptr = std::make_shared<Node>(*this);
+        auto other_ptr = std::make_shared<Node>(other);
+        std::vector<std::shared_ptr<Node>> children = {self_ptr, other_ptr};
+        Node out(this->data + other.data, children, "+");
+        
+        // Capture the Node itself by reference so we can access its current gradient
+        out._backward = [out_ptr = &out, self_ptr, other_ptr]() {
+            double current_grad = out_ptr->grad;
+            std::cout << "Current grad in backward: " << current_grad << std::endl;
+            self_ptr->grad += current_grad;
+            other_ptr->grad += current_grad;
+        };
+        
+        return out;
+    }
 
 Node Node::operator+(double other) const {
     return *this + Node(other);
@@ -143,31 +131,24 @@ Node Node::relu() const {
 */
 
 void Node::backward() {
-    // Topological sort
-    std::vector<Node*> topo;
-    std::set<Node*> visited;
+        std::vector<Node*> topo;
+        std::set<Node*> visited;
 
-    // Define DFS function for topological sort
-    std::function<void(Node*)> build_topo = [&](Node* v) {
-        if (visited.count(v) == 0) {
-            visited.insert(v);
-            for (auto& child : v->_prev) {
-                build_topo(&child);
+        std::function<void(Node*)> build_topo = [&](Node* v) {
+            if (visited.find(v) == visited.end()) {
+                visited.insert(v);
+                for (const auto& child : v->_prev) {
+                    build_topo(child.get());
+                }
+                topo.push_back(v);
             }
-            //std::cout << "Adding node to topo" << v->print() << std::endl;
-            topo.emplace_back(v);
+        };
+
+        build_topo(this);
+        this->grad = 1.0;
+
+        for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
+            std::cout << "Processing backward on: " << (*it)->print() << std::endl;
+            (*it)->_backward();
         }
-    };
-
-
-    build_topo(this);
-
-
-    this->grad = 1.0;
-
- 
-    for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-        std::cout << "Backward on node" << (*it)->print() << std::endl;
-        (*it)->_backward();
     }
-}

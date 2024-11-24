@@ -11,13 +11,15 @@ class Node {
    private:
     double data;
     double grad;
-    std::vector<Node> _prev;
+    std::vector<std::shared_ptr<Node>> _prev;
     std::function<void()> _backward;
     std::string _op;
 
    public:
     // Constructors
-    Node(double data, std::vector<Node> _prev = {}, std::string _op = "");
+    Node(double data, const std::vector<std::shared_ptr<Node>>& prev = {}, const std::string& op = "")
+        : data(data), grad(0.0), _prev(prev), _op(op), _backward([]() {}) {
+    }
 
     // Getters
     double get_data() const;
