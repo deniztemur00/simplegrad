@@ -1,19 +1,31 @@
 #include "../include/node.h"
 
-double Node::get_data() const {
+// Constructor
+Node::Node(float data, std::unordered_set<std::shared_ptr<Node>> prev, const std::string& op)
+    : data(data), _prev(std::move(prev)), _op(op) {
+    this->_backward = [this] {
+        for (const auto& child : this->_prev) {
+            child->_backward();
+        }
+    };
+}
+
+Node::~Node() = default;
+
+float Node::get_data() const {
     return data;
 }
 
-double Node::get_grad() const {
+float Node::get_grad() const {
     return grad;
 }
 
-std::string Node::get_op() const {
+const std::string& Node::get_op() const {
     return _op;
 }
 
-void Node::set_backward(std::function<void(double)> backward_func) {
-    _backward = backward_func;
+const std::unordered_set<std::shared_ptr<Node>>& Node::get_prev() const {
+    return _prev;
 }
 
 std::string Node::print() const {
@@ -23,24 +35,27 @@ std::string Node::print() const {
        << ", op='" << _op << "')";
     return ss.str();
 }
+std::shared_ptr<Node> Node::operator+(const Node& other) const {
+    auto result = std::make_shared<Node>(
+        this->data + other.data,
+        std::unordered_set<std::shared_ptr<Node>>{
+            std::const_pointer_cast<Node>(shared_from_this()),
+            std::const_pointer_cast<Node>(other.shared_from_this())},
+        "+");
 
-Node Node::operator+(const Node& other) const {
-    auto self_ptr = std::make_shared<Node>(*this);
-    auto other_ptr = std::make_shared<Node>(other);
-    std::vector<std::shared_ptr<Node>> children = {self_ptr, other_ptr};
-    Node out(this->data + other.data, children, "+");
-
-    out._backward = [self_ptr, other_ptr](double out_grad) {
-        self_ptr->grad += out_grad;
-        other_ptr->grad += out_grad;
-        std::cout << "Backward: " << self_ptr->grad << " " << other_ptr->grad << std::endl;
+    result->_backward = [this, &other, result]() {
+        grad += result->grad;
+        other.grad += result->grad;
     };
-
-    return out;
+    return result;
 }
 
-Node Node::operator+(double other) const {
+std::shared_ptr<Node> Node::operator+(float other) const {
     return *this + Node(other);
+}
+
+std::shared_ptr<Node> operator+(float lhs, const Node& rhs) {
+    return rhs + lhs;
 }
 
 /*
@@ -59,11 +74,11 @@ Node Node::operator*(const Node& other) const {
     return *out;
 }
 
-Node Node::operator*(double other) const {
+Node Node::operator*(float other) const {
     return *this * Node(other);
 }
 
-Node Node::pow(double exponent) const {
+Node Node::pow(float exponent) const {
     auto shared_this = std::make_shared<Node>(*this);
     auto out = std::make_shared<Node>(std::pow(shared_this->data, exponent),
                                       std::vector<std::shared_ptr<Node>>{shared_this}, "pow");
@@ -129,25 +144,28 @@ Node Node::relu() const {
 */
 
 void Node::backward() {
-    std::vector<Node*> topo;
-    std::set<Node*> visited;
+    std::vector<std::shared_ptr<Node>> topo;
+    topo.reserve(10); // Reserve some space to avoid reallocations
+    std::unordered_set<std::shared_ptr<Node>> visited;
 
-    std::function<void(Node*)> build_topo = [&](Node* v) {
+    std::function<void(const std::shared_ptr<Node>&)> build_topo = [&](const std::shared_ptr<Node>& v) {
         if (visited.find(v) == visited.end()) {
             visited.insert(v);
+
             for (const auto& child : v->_prev) {
-                build_topo(child.get());
+                build_topo(child);
             }
-            topo.push_back(v);
+            topo.emplace_back(v);
         }
     };
 
-    build_topo(this);
-    this->grad = 1.0;
-    std::cout << "This node: " << this->print() << std::endl;
+    build_topo(shared_from_this());
+
+    grad = 1.0;
+
     for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-        std::cout << "Processing backward on: " << (*it)->print() << std::endl;
-        (*it)->_backward((*it)->grad);
-        std::cout << "After backward: " << (*it)->print() << std::endl;
+        const auto& v = *it;
+        v->_backward();
+        std::cout << "After Backward: " << v->print() << std::endl; // success.
     }
 }
