@@ -46,7 +46,6 @@ NodePtr Node::operator+(const Node& other) const {
             std::const_pointer_cast<Node>(other.shared_from_this())},
         "+");
 
-    std::cout << "result : " << result->print() << std::endl;
     result->_backward = [this, &other, result]() {
         grad += result->grad;
         other.grad += result->grad;
@@ -87,6 +86,10 @@ NodePtr Node::rmul(const Node& other) const {
 
 NodePtr Node::operator*(float other) const {
     return *this * *std::make_shared<Node>(other);
+}
+
+NodePtr operator*(float lhs, const Node& rhs) {
+    return rhs * lhs;
 }
 
 NodePtr Node::operator-() const {
@@ -134,7 +137,7 @@ NodePtr Node::pow(float exponent) const {
         "pow");
 
     result->_backward = [this, result, exponent]() {
-        grad += exponent * std::pow(this->data, exponent - 1) * result->grad;
+        grad += exponent * std::pow(this->data + EPSILON, exponent - 1) * result->grad;
     };
 
     return result;
@@ -189,49 +192,3 @@ void Node::backward() {
         // std::cout << "After Backward: " << v->print() << std::endl; // success.
     }
 }
-
-/*
-
-
-
-Node Node::sub(const Node& other) const {
-    return *this + (-other);
-}
-
-Node Node::neg() const {
-    return -(*this);
-}
-
-Node Node::radd(const Node& other) {
-    return *this + other;
-}
-
-Node Node::rsub(const Node& other) {
-    return other + (-*this);
-}
-
-Node Node::rmul(const Node& other) {
-    return other * *this;
-}
-
-Node Node::rdiv(const Node& other) {
-    return other * this->pow(-1);
-}
-
-Node Node::rtruediv(const Node& other) {
-    return *this * other.pow(-1);
-}
-
-Node Node::relu() const {
-    auto shared_this = std::make_shared<Node>(*this);
-    auto out = std::make_shared<Node>(std::max(0.0, shared_this->data), std::vector<NodePtr>{shared_this}, "ReLU");
-
-    out->set_backward([shared_this, out]() {
-        if (out->data > 0) {
-            shared_this->grad += out->grad;
-        }
-    });
-
-    return *out;
-}
-*/

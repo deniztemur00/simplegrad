@@ -21,6 +21,8 @@ PYBIND11_MODULE(simplegrad, m) {
         .def(py::self + float())
         .def(float() + py::self)
         .def(py::self * py::self)
+        .def(py::self * float())
+        .def(float() * py::self)
         .def("__rmul__", &Node::rmul)
         .def("__radd__", &Node::radd)
         .def("__neg__", &Node::operator-)

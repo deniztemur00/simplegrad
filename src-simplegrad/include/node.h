@@ -36,30 +36,20 @@ class Node : public std::enable_shared_from_this<Node> {
     NodePtr operator*(const Node& other) const;
     NodePtr operator*(float other) const;
     NodePtr rmul(const Node& other) const;
+    friend NodePtr operator*(float lhs, const Node& rhs);
+
     NodePtr operator-() const;
     NodePtr sub(const Node& other) const;
     NodePtr rsub(const Node& other) const;
+
     NodePtr pow(float exponent) const;
     NodePtr pow(const Node& other) const;
+
     NodePtr rdiv(const Node& other) const;
     NodePtr rtruediv(const Node& other) const;
+
+    // Other methods
     NodePtr relu() const;
-    //Node rdiv(const Node& other);
-    //Node operator*(const Node& other) const;
-    //Node operator*(float other) const;
-    //Node operator-(const Node& other) const;
-    //Node sub(const Node& other) const;
-    //Node pow(float exponent) const;
-    //Node rtruediv(const Node& other);
-    //Node rsub(const Node& self);
-    //Node radd(const Node& self);
-
-
-    //Node operator/(const Node& other) const;
-    //Node rmul(const Node& self);
-    //Node relu() const;
-
     void backward();
-
     std::string print() const;
 };
