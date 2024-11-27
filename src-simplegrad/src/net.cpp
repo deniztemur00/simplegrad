@@ -1,4 +1,4 @@
-#include "include/net.h"
+#include "../include/net.h"
 
 // Virtual method
 
@@ -98,12 +98,11 @@ NodePtrVec Layer::parameters() {
 
 std::string Layer::display_params() {
     std::stringstream ss;
-    ss << "Layer(";
+    ss << "Layer(\n";
     for (auto& neuron : neurons) {
-        ss << neuron.display_params() << ", ";
+        ss << "  " << neuron.display_params();
     }
-    ss << ")";
-
+    //ss << "]";
     return ss.str();
 }
 
@@ -127,7 +126,6 @@ NodePtrVec MLP::operator()(NodePtrVec& x) {
     return x;
 }
 
-
 NodePtrVec MLP::parameters() {
     NodePtrVec params;
     params.reserve(n_params + 1);
@@ -143,11 +141,10 @@ NodePtrVec MLP::parameters() {
 
 std::string MLP::display_params() {
     std::stringstream ss;
-    ss << "MLP(";
+    ss << "MLP(\n";
     for (auto& layer : layers) {
-        ss << layer.display_params() << ", ";
+        ss << layer.display_params();
     }
-    ss << ")";
-
+    ss << ")\n Total Parameters: " << n_params;
     return ss.str();
 }
