@@ -1,4 +1,4 @@
-from .module.simplegrad import Space
+from .module.simplegrad import Node
 
 
-__all__ = ['Space']
+__all__ = ['Node']

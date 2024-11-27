@@ -1,1 +1,1 @@
-from .simplegrad import Space
+from .simplegrad import Node
