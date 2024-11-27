@@ -1,4 +1,4 @@
-from .module.simplegrad import Node
+from .module.simplegrad import Node, Module, Neuron, Layer, MLP
 
 
-__all__ = ['Node']
+__all__ = ["Node", "Module", "Neuron", "Layer", "MLP"]
