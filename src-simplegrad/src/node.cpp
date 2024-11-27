@@ -28,6 +28,14 @@ const std::unordered_set<NodePtr>& Node::get_prev() const {
     return _prev;
 }
 
+void Node::set_data(float data) {
+    this->data = data;
+}
+
+void Node::set_grad(float grad) const {
+    this->grad = grad;
+}
+
 std::string Node::print() const {
     std::stringstream ss;
     ss << "Node(data=" << data

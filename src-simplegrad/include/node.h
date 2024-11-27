@@ -27,6 +27,12 @@ class Node : public std::enable_shared_from_this<Node> {
     const std::string& get_op() const;
     const std::unordered_set<NodePtr>& get_prev() const;
 
+    // Setters
+    void set_data(float data);
+    void set_grad(float grad) const;
+
+
+
     // Overloaded operators
     NodePtr operator+(const Node& other) const;
     NodePtr operator+(float other) const;
