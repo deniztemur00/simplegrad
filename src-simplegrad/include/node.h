@@ -8,7 +8,7 @@
 #include <unordered_set>
 
 using NodePtr = std::shared_ptr<class Node>;
-#define EPSILON 1e-9
+static double constexpr EPSILON = 1e-9; // for division
 class Node : public std::enable_shared_from_this<Node> {
    private:
     float data;
