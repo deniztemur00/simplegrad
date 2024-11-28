@@ -58,7 +58,8 @@ PYBIND11_MODULE(simplegrad, m) {
     // Bind MLP class
     py::class_<MLP, Module, std::shared_ptr<MLP>>(m, "MLP")
         .def(py::init<int, std::vector<int>>())
-        .def("__call__", &MLP::operator())
+        .def("__call__", static_cast<NodePtrVec (MLP::*)(NodePtrVec&)>(&MLP::operator()))
+        .def("__call__", static_cast<NodePtrVec (MLP::*)(const py::array_t<float>&)>(&MLP::operator()))
         .def("parameters", &MLP::parameters)
         .def("__repr__", &MLP::display_params);
 }

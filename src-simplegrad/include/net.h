@@ -1,4 +1,6 @@
 #pragma once
+#include <pybind11/numpy.h>  // MLP numpy support
+
 #include <iostream>
 #include <random>
 #include <vector>
@@ -46,6 +48,7 @@ class MLP : public Module {
    public:
     MLP(int nin, std::vector<int> nouts);
     NodePtrVec operator()(NodePtrVec& x);
+    NodePtrVec operator()(const pybind11::array_t<float>& x);  // numpy support
     NodePtrVec parameters() override;
     std::string display_params();
 };

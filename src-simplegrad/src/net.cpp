@@ -14,7 +14,11 @@ Neuron::Neuron(int nin, bool nonlin) : nonlin(nonlin),
                                        bias(std::make_shared<Node>(0.0)) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<float> dist(-1.0, 1.0);
+
+    // Xavier initialization
+    float limit = sqrt(6.0f / (nin + 1));
+    std::uniform_real_distribution<float> dist(-limit, limit);
+
     weights.reserve(nin);
 
     for (int i = 0; i < nin; i++) {
@@ -23,16 +27,16 @@ Neuron::Neuron(int nin, bool nonlin) : nonlin(nonlin),
 }
 
 NodePtr Neuron::operator()(NodePtrVec& x) {
-    NodePtr out = std::make_shared<Node>(0.0);
+    NodePtr out = std::make_shared<Node>(0.0f);
 
     for (size_t i = 0; i < x.size(); i++) {
         out = *out + *(*x[i] * *weights[i]);
     }
     out = *out + *bias;
-
     if (nonlin) {
         out = out->relu();
     }
+    // std::cout << "Neuron output: " << out->get_data() << "\n";
 
     return out;
 }
@@ -54,8 +58,7 @@ std::string Neuron::display_params() {
     for (const auto& w : weights) {
         ss << w->get_data() << ", ";
     }
-    ss << "b=" << bias->get_data() << ")\n";
-
+    ss << "b = " << bias->get_data() << ")\n";
     return ss.str();
 }
 
@@ -74,10 +77,8 @@ NodePtrVec Layer::operator()(NodePtrVec& x) {
     NodePtrVec out;
     out.reserve(neurons.size() + 1);
 
-    for (auto neuron : neurons) {
-        for (auto weight : neuron.parameters()) {
-            out.emplace_back(weight);
-        }
+    for (auto& neuron : neurons) {
+        out.emplace_back(neuron(x));  // Use neuron's operator() to compute output
     }
 
     return out;
@@ -102,7 +103,7 @@ std::string Layer::display_params() {
     for (auto& neuron : neurons) {
         ss << "  " << neuron.display_params();
     }
-    //ss << "]";
+    // ss << "]";
     return ss.str();
 }
 
@@ -122,8 +123,22 @@ MLP::MLP(int nin, std::vector<int> nouts) : n_params(0) {
 NodePtrVec MLP::operator()(NodePtrVec& x) {
     for (auto& layer : layers) {
         x = layer(x);
+        std::cout << "Layer output: " << x.size() << "\n";
     }
+
     return x;
+}
+
+NodePtrVec MLP::operator()(const pybind11::array_t<float>& x) {
+    auto buf = x.unchecked<1>();
+    NodePtrVec inputs;
+    inputs.reserve(buf.shape(0));
+
+    for (pybind11::ssize_t i = 0; i < buf.shape(0); i++) {
+        inputs.push_back(std::make_shared<Node>(buf(i)));
+    }
+
+    return operator()(inputs);
 }
 
 NodePtrVec MLP::parameters() {
@@ -145,6 +160,6 @@ std::string MLP::display_params() {
     for (auto& layer : layers) {
         ss << layer.display_params();
     }
-    ss << ")\n Total Parameters: " << n_params;
+    ss << "))\nTotal Parameters: " << n_params;
     return ss.str();
 }
