@@ -4,6 +4,7 @@
 
 #include "include/net.h"
 #include "include/node.h"
+#include "include/mlp.h"
 
 namespace py = pybind11;
 
@@ -12,12 +13,18 @@ PYBIND11_MODULE(simplegrad, m) {
     py::class_<Node, NodePtr>(m, "Node")
         .def(py::init<float>())
         .def("__repr__", &Node::print)
-        .def("backward", &Node::backward)
-        .def("relu", &Node::relu)
-        .def("data", &Node::get_data)
-        .def("grad", &Node::get_grad)
-        .def("prev", &Node::get_prev)
-        .def("op", &Node::get_op)
+        .def("backward", &Node::backward,
+             "Computes gradients through backpropagation.")
+        .def("relu", &Node::relu,
+             "Applies ReLU activation function.")
+        .def("data", &Node::get_data,
+             "Returns the data stored in the node.")
+        .def("grad", &Node::get_grad,
+             "Returns the gradient stored in the node.")
+        .def("prev", &Node::get_prev,
+             "Returns the previous nodes.")
+        .def("op", &Node::get_op,
+             "Returns the operation performed to get the node.")
         .def(py::self + py::self)
         .def(py::self + float())
         .def(float() + py::self)
@@ -60,6 +67,9 @@ PYBIND11_MODULE(simplegrad, m) {
         .def(py::init<int, std::vector<int>>())
         .def("__call__", static_cast<NodePtrVec (MLP::*)(NodePtrVec&)>(&MLP::operator()))
         .def("__call__", static_cast<NodePtrVec (MLP::*)(const py::array_t<float>&)>(&MLP::operator()))
+        .def("step", &MLP::step,
+             py::arg("lr"),
+             "Performs a step of gradient descent.")
         .def("parameters", &MLP::parameters)
         .def("__repr__", &MLP::display_params);
 }
