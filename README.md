@@ -83,7 +83,10 @@ for epoch in range(epochs):
     # Average loss over all batches
     print(f"Epoch {epoch+1}, Average Loss: {epoch_loss/n_batches:.3f}")
 ```
-
+You can execute the above code by running the following command:
+```bash
+make run
+```
 ## License
 
 This project is licensed under the MIT License.
