@@ -1,17 +1,22 @@
 # SimpleGrad
 
-SimpleGrad is a lightweight automatic differentiation library written in C++.
+SimpleGrad is a lightweight automatic differentiation library written in C++ with Python bindings.
 
 ## Prerequisites
 
 - Python 3.10 or higher
-- g++
-- CMake
+- g++/gcc with C++17 support
+- CMake 3.12 or higher
+- pybind11
 
-## Build
+## Build & Installation
 
-You can build the project by simply running:
-
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/simplegrad.git
+cd simplegrad
+```
+2. Build with makefile:
 ```bash
 make build
 ```
@@ -21,14 +26,6 @@ make build
 - Supports basic arithmetic operations
 - Gradient computation
 
-## Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/yourusername/simplegrad.git
-cd simplegrad
-```
 
 ## Usage
 
@@ -48,8 +45,8 @@ z = x * y + y
 z.backward()
 
 # Print gradients
-print(x.grad)  # Should print the gradient of z with respect to x
-print(y.grad)  # Should print the gradient of z with respect to y
+print(x)  # Should print the node with updated gradient
+print(y)  # Should print the node with updated gradient
 ```
 
 ## Contributing
@@ -59,3 +56,8 @@ Contributions are welcome! Please open an issue or submit a pull request.
 ## License
 
 This project is licensed under the MIT License.
+
+## Acknowledgements
+
+This project was inspired by the [micrograd](https://github.com/karpathy/micrograd) library.
+```
