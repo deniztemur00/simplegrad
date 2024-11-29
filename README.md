@@ -87,6 +87,12 @@ You can execute the above code by running the following command:
 ```bash
 make run
 ```
+
+## Testing
+Tests are written to ensure the correctness of the Node class. Thus making sure MLP works as expected. You can run tests with following command:
+```bash
+make test
+```
 ## License
 
 This project is licensed under the MIT License.
