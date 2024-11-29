@@ -1,5 +1,6 @@
 #include "../include/node.h"
 
+
 // Constructor
 Node::Node(float data, std::unordered_set<NodePtr> prev, const std::string& op)
     : data(data), _prev(std::move(prev)), _op(op) {
@@ -160,6 +161,7 @@ NodePtr Node::rtruediv(const Node& other) const {
 }
 
 NodePtr Node::relu() const {
+    // std::cout<<"data inside relu func: "<<data<<"\n";
     auto result = std::make_shared<Node>(data > 0 ? data : 0.0,
                                          std::unordered_set<NodePtr>{
                                              std::const_pointer_cast<Node>(shared_from_this())},
@@ -174,29 +176,36 @@ NodePtr Node::relu() const {
     return result;
 }
 
+/**
+ * Computes gradients through backpropagation.
+ * Traverses the computation graph in reverse topological order,
+ * accumulating gradients for each node.
+ */
 void Node::backward() {
-    std::vector<NodePtr> topo;
-    topo.reserve(10);  // Reserve some space to avoid reallocations
-    std::unordered_set<NodePtr> visited;
+    {
+        std::vector<NodePtr> topo;
+        topo.reserve(10);  // Reserve some space to avoid reallocations
+        std::unordered_set<NodePtr> visited;
 
-    std::function<void(const NodePtr&)> build_topo = [&](const NodePtr& v) {
-        if (visited.find(v) == visited.end()) {
-            visited.insert(v);
+        std::function<void(const NodePtr&)> build_topo = [&](const NodePtr& v) {
+            if (visited.find(v) == visited.end()) {
+                visited.insert(v);
 
-            for (const auto& child : v->_prev) {
-                build_topo(child);
+                for (const auto& child : v->_prev) {
+                    build_topo(child);
+                }
+                topo.emplace_back(v);
             }
-            topo.emplace_back(v);
+        };
+
+        build_topo(shared_from_this());
+
+        grad = 1.0;
+
+        for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
+            const auto& v = *it;
+            v->_backward();
+            // std::cout << "After Backward: " << v->print() << std::endl; // success.
         }
-    };
-
-    build_topo(shared_from_this());
-
-    grad = 1.0;
-
-    for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-        const auto& v = *it;
-        v->_backward();
-        // std::cout << "After Backward: " << v->print() << std::endl; // success.
     }
 }
