@@ -6,7 +6,7 @@ __pycache__/
 *.egg
 dist/
 
-.github/
+
 .pytest_cache/
 .hypothesis/
 # Byte-compiled / optimized / DLL files
