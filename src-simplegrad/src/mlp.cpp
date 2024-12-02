@@ -1,5 +1,7 @@
 #include "../include/mlp.h"
 
+static int n_instances = 0;
+
 MLP::MLP(int nin, std::vector<int> nouts) : n_params(0) {
     layers.reserve(nouts.size() + 1);
     layers.emplace_back(Layer(nin, nouts[0]));
@@ -24,9 +26,8 @@ NodePtrVec MLP::operator()(const pybind11::array_t<float>& x) {
     auto buf = x.unchecked<1>();
     NodePtrVec inputs;
     inputs.reserve(buf.shape(0));
-
     for (pybind11::ssize_t i = 0; i < buf.shape(0); i++) {
-        inputs.push_back(std::make_shared<Node>(buf(i)));
+        inputs.emplace_back(std::make_shared<Node>(buf(i)));
     }
 
     return operator()(inputs);
@@ -56,12 +57,18 @@ std::string MLP::display_params() {
 }
 
 void MLP::step(float lr) {
-    
-    for (auto& parameter : parameters()) {
-        //std::cout << "Parameter: " << parameter->get_data() << "\n";
-        //std::cout << "Gradient: " << parameter->get_grad() << "\n";
-        auto out = parameter->get_data() - lr * parameter->get_grad();
-        parameter->set_data(out);
-        //std::cout << "Updated Parameter: " << parameter->get_data() << "\n";
+    for (auto& layer : layers) {
+        for (auto& neurons : layer) {  // implement begin
+            for (auto& node : neurons) {
+                std::cout << "Inside step function loop of MLP: " << ++n_instances << "\n";
+                // std::cout << "Parameter: " << parameter->get_data() << "\n";
+                // std::cout << "Gradient: " << parameter->get_grad() << "\n";
+
+                auto out = node->get_data() - lr * node->get_grad();
+                node->set_data(out);
+                //std::cout << "Parameter: " << node->print() << "\n";
+                
+            }
+        }
     }
 }
