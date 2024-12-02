@@ -13,7 +13,7 @@ SimpleGrad is a lightweight automatic differentiation library written in C++ wit
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/simplegrad.git
+git clone https://github.com/deniztemur00/simplegrad.git
 cd simplegrad
 ```
 2. Build with makefile:
