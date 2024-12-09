@@ -1,0 +1,3 @@
+include MANIFEST.md
+include py-simplegrad/simplegrad/*.pyi
+include py-simplegrad/simplegrad/py.typed
