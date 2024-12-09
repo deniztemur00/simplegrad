@@ -3,3 +3,6 @@ pytest
 hypothesis
 numpy
 scikit-learn
+twine
+pybind11
+auditwheel
