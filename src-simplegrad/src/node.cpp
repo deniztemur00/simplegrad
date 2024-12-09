@@ -1,14 +1,9 @@
 #include "../include/node.h"
 
-
 // Constructor
 Node::Node(float data, std::unordered_set<NodePtr> prev, const std::string& op)
     : data(data), _prev(std::move(prev)), _op(op) {
-    this->_backward = [this] {
-        for (const auto& child : this->_prev) {
-            child->_backward();
-        }
-    };
+    this->_backward = [this] {};
 }
 
 Node::~Node() = default;
@@ -176,11 +171,6 @@ NodePtr Node::relu() const {
     return result;
 }
 
-/**
- * Computes gradients through backpropagation.
- * Traverses the computation graph in reverse topological order,
- * accumulating gradients for each node.
- */
 void Node::backward() {
     {
         std::vector<NodePtr> topo;
