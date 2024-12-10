@@ -16,8 +16,8 @@ setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: Linux",
+        "License :: OSI Approved :: MIT License",  # Fixed classifier syntax
+        "Operating System :: POSIX :: Linux", 
     ],
     license="MIT",
     author_email="deniztemur00@gmail.com",
