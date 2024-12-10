@@ -4,4 +4,3 @@ hypothesis
 numpy
 scikit-learn
 twine
-pybind11
