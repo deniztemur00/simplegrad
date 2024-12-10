@@ -15,7 +15,7 @@ requirements: .venv
 
 .PHONY: install
 install:
-	$(BIN)/python -m pip install -e .
+	$(BIN)/python -m pip install .
 
 .PHONY: build
 build: .venv
@@ -41,7 +41,7 @@ test:
 
 .PHONY: run
 run:
-	$(BIN)/python $(PY_FOLDER)/simplegrad/main.py
+	$(BIN)/python $(PY_FOLDER)/main.py
 
 .PHONY: publish-test
 publish-test:
