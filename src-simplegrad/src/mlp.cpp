@@ -57,18 +57,9 @@ std::string MLP::display_params() {
 }
 
 void MLP::step(float lr) {
-    for (auto& layer : layers) {
-        for (auto& neurons : layer) {  // implement begin
-            for (auto& node : neurons) {
-                //std::cout << "Inside step function loop of MLP: " << ++n_instances << "\n";
-                // std::cout << "Parameter: " << parameter->get_data() << "\n";
-                // std::cout << "Gradient: " << parameter->get_grad() << "\n";
-
-                auto out = node->get_data() - lr * node->get_grad();
-                node->set_data(out);
-                //std::cout << "Parameter: " << node->print() << "\n";
-                
-            }
-        }
+    auto params = parameters();
+    for (auto& param : params) {
+        float new_data = param->get_data() - lr * param->get_grad();
+        param->set_data(new_data);
     }
 }
