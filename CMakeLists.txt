@@ -40,5 +40,5 @@ include_directories(${pybind11_INCLUDE_DIRS})
 pybind11_add_module(simplegrad ${SRC_DIR}/simplegrad.cpp ${SOURCES} ${HEADERS})
 
 set_target_properties(simplegrad PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/py-simplegrad/simplegrad/module/
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/py-simplegrad/simplegrad-dev/
 )
