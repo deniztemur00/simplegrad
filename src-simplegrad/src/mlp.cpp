@@ -60,7 +60,7 @@ void MLP::step(float lr) {
     for (auto& layer : layers) {
         for (auto& neurons : layer) {  // implement begin
             for (auto& node : neurons) {
-                std::cout << "Inside step function loop of MLP: " << ++n_instances << "\n";
+                //std::cout << "Inside step function loop of MLP: " << ++n_instances << "\n";
                 // std::cout << "Parameter: " << parameter->get_data() << "\n";
                 // std::cout << "Gradient: " << parameter->get_grad() << "\n";
 
