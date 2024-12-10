@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="simplegrad",
-    version="0.0.43",
+    version="0.0.45",
     description="Automatic differentiation library for basic arithmetic operations",
     author="Deniz",
     url="https://github.com/deniztemur00/simplegrad.git",
@@ -17,8 +17,10 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: POSIX :: Linux",
+        "Operating System :: Linux",
     ],
+    license="MIT",
+    author_email="deniztemur00@gmail.com",
     python_requires=">=3.6",
     options={"bdist_wheel": {"universal": True}},
 )
