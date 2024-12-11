@@ -40,18 +40,20 @@ from sklearn import datasets
 
 # Define the model
 X, y = datasets.make_classification(
-        n_samples=100,
+        n_samples=1000,
         n_features=10,
         n_classes=2,
         random_state=42,  # for reproducibility
     )
+
+
 lr = 0.01
 batch_size = 16
-epochs = 25
+epochs = 10
 
 # Define the model
 model = MLP(
-    10, [32, 16, 1]
+    10, [12, 1]
 )  # 2 input nodes, 2 hidden layers with arbitrary sizes, 1 output node
 
 # Training data
@@ -65,7 +67,7 @@ for epoch in range(epochs):
         current_batch_size = len(batch_X)  # Handle last batch
 
         batch_loss = 0.0
-        model.zero_grad()  # Reset gradients before batch
+        #model.zero_grad()  # gradients are automatically reset after step function
 
         # Accumulate gradients over batch
         for x, y_true in zip(batch_X, batch_y):
@@ -77,7 +79,6 @@ for epoch in range(epochs):
             loss.backward()
 
         model.step(lr)  # Update weights using accumulated gradients
-        del loss, y_hat, y_true  # Clean up
         epoch_loss += batch_loss
 
     # Average loss over all batches
