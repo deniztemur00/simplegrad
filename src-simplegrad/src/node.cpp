@@ -8,7 +8,8 @@ Node::Node(float data, std::vector<NodePtr> prev, const std::string& op)
 }
 
 Node::~Node() {
-    std::cout << "Node destroyed: " << n_nodes-- << std::endl;
+    // std::cout << "Node destroyed: " << n_nodes-- << std::endl;
+    n_nodes--;
 }
 
 float Node::get_data() const {
@@ -180,36 +181,6 @@ NodePtr Node::relu() const {
     return result;
 }
 
-/*
-void Node::backward() {
-    std::vector<NodePtr> topo;
-    topo.reserve(100);
-    std::unordered_set<NodePtr> visited;
-
-    // Iterative DFS for topological sort
-    std::stack<NodePtr> stack;
-    stack.push(shared_from_this());
-    while (!stack.empty()) {
-        auto v = stack.top();
-        stack.pop();
-        if (visited.find(v) != visited.end())
-            continue;
-        visited.insert(v);
-        for (const auto& child : v->_prev) {
-            stack.push(child);
-        }
-        topo.emplace_back(v);
-    }
-
-    grad = 1.0;
-    for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-        (*it)->_backward();
-        std::cout << "After Backward: " << (*it)->print() << std::endl;
-    }
-    topo.clear();
-}
-*/
-
 void Node::backward() {
     std::vector<NodePtr> topo;
     std::unordered_set<NodePtr> visited;
@@ -233,8 +204,8 @@ void Node::backward() {
     for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
         const auto& v = *it;
         v->_backward();
-        //std::cout << "After Backward: " << v->print() << std::endl;  // success.
+        // std::cout << "After Backward: " << v->print() << std::endl;  // success.
     }
     topo.clear();
+    visited.clear();
 }
-
