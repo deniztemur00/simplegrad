@@ -164,7 +164,7 @@ NodePtr Node::rtruediv(const Node& other) const {
 }
 
 NodePtr Node::relu() const {
-    const float alpha = 0.1f;  // Leaky ReLU slope for negative values
+    const float alpha = 0.2f;  // Leaky ReLU slope for negative values
     auto result = std::make_shared<Node>(data > 0 ? data : alpha * data,
                                          std::vector<NodePtr>{
                                              std::const_pointer_cast<Node>(shared_from_this())},
