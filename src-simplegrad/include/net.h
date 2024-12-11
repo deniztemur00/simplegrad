@@ -26,7 +26,7 @@ class Neuron : public Module {
     auto begin() { return weights.begin(); }
     auto end() { return weights.end(); }
     size_t size() const { return weights.size(); }
-    NodePtr operator()(NodePtrVec& x);
+    NodePtr& operator()(NodePtrVec& x);
     NodePtrVec& parameters() override;
     std::string display_params();
     void clear_weights();
@@ -43,7 +43,7 @@ class Layer : public Module {
     size_t input_size(size_t idx) const { return neurons[idx].size(); }
     size_t size() const { return neurons.size(); }
     Layer(int nin, int nouts);
-    NodePtrVec operator()(NodePtrVec& x);
+    NodePtrVec& operator()(NodePtrVec& x);
     NodePtrVec& parameters() override;
     std::string display_params();
     void clear_neurons();

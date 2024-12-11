@@ -27,18 +27,22 @@ Neuron::Neuron(int nin, bool nonlin) : nonlin(nonlin),
     }
 }
 
-NodePtr Neuron::operator()(NodePtrVec& x) {
-    NodePtr out = std::make_shared<Node>(0.0f);
-
-    for (size_t i = 0; i < x.size(); i++) {
-        out = *out + *(*x[i] * *weights[i]);
+NodePtr& Neuron::operator()(NodePtrVec& x) {
+    static NodePtr activation;
+    
+    // Initialize sum with bias
+    NodePtr sum = std::make_shared<Node>(*bias);
+    
+    // Compute weighted sum
+    for (size_t i = 0; i < weights.size(); i++) {
+        sum = *sum + *(*weights[i] * *x[i]);
     }
-    out = *out + *bias;
+
     if (nonlin) {
-        out = out->relu();
+        activation = sum->relu(); 
     }
 
-    return out;
+    return activation;
 }
 
 NodePtrVec& Neuron::parameters() {
@@ -97,14 +101,15 @@ Layer::Layer(int nin, int nouts) : n_params((nin + 1) * nouts) {
     }
 }
 
-NodePtrVec Layer::operator()(NodePtrVec& x) {
-    NodePtrVec out;
-    out.reserve(neurons.size() + 1);
+NodePtrVec& Layer::operator()(NodePtrVec& x) {
+    static NodePtrVec out;
+    out.clear();
+    out.reserve(neurons.size());
 
     for (auto& neuron : neurons) {
-        out.emplace_back(neuron(x)); 
+        auto neuron_out = neuron(x);
+        out.emplace_back(neuron_out);
     }
-
     return out;
 }
 
