@@ -5,6 +5,7 @@
 void Module::zero_grad() {
     for (auto& param : parameters()) {
         param->set_grad(0.0);
+        param->clear_prev();
     }
 }
 
@@ -41,14 +42,16 @@ NodePtr Neuron::operator()(NodePtrVec& x) {
     return out;
 }
 
-NodePtrVec Neuron::parameters() {
-    NodePtrVec params;
+NodePtrVec& Neuron::parameters() {
+    static NodePtrVec params;
+    params.clear();
     params.reserve(weights.size() + 1);
-
-    for (const auto& weight : weights) {
-        params.emplace_back(weight);
+    
+    for (auto& w : weights) {
+        params.push_back(w);
     }
-    params.emplace_back(bias);
+    params.push_back(bias);
+    
     return params;
 }
 
@@ -84,16 +87,15 @@ NodePtrVec Layer::operator()(NodePtrVec& x) {
     return out;
 }
 
-NodePtrVec Layer::parameters() {
-    NodePtrVec params;
+NodePtrVec& Layer::parameters() {
+    static NodePtrVec params;
+    params.clear();
     params.reserve(n_params + 1);
 
     for (auto& neuron : neurons) {
-        for (auto& param : neuron.parameters()) {
-            params.emplace_back(param);
-        }
+        auto neuron_params = neuron.parameters();
+        params.insert(params.end(), neuron_params.begin(), neuron_params.end());
     }
-
     return params;
 }
 
