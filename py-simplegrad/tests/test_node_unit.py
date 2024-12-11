@@ -72,12 +72,12 @@ def test_compound_div():
     assert abs(d.data() - 5.0 / 3.0 / 3.0) < EPSILON
 
 
-def test_relu_ops():
+def test_relu_ops(): # leaky relu with alpha = 0.2
     a = Node(-5.0)
     b = Node(3.0)
     sum_ab = b + a
     relu_result = sum_ab.relu()
-    assert abs(relu_result.data() - 0.0) < EPSILON
+    assert abs(relu_result.data() - -0.4) < EPSILON
 
 
 def test_backward():
@@ -239,12 +239,12 @@ def test_negation():
     assert abs(a.grad() + 1.0) < EPSILON
 
 
-def test_relu_negative_input():
+def test_relu_negative_input(): # leaky relu with alpha = 0.2
     a = Node(-5.0)
     b = a.relu()
-    assert abs(b.data() - 0.0) < EPSILON
+    assert abs(b.data() - -1.0) < EPSILON
     b.backward()
-    assert abs(a.grad() - 0.0) < EPSILON
+    assert abs(a.grad() - 0.2) < EPSILON
 
 
 def test_relu_positive_input():

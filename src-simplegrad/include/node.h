@@ -4,34 +4,34 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 using NodePtr = std::shared_ptr<class Node>;
-static double constexpr EPSILON = 1e-9; // for division
+static double constexpr EPSILON = 1e-9;  // for division
 class Node : public std::enable_shared_from_this<Node> {
    private:
     float data;
     mutable float grad = 0.0;
-    std::unordered_set<NodePtr> _prev;
-    std::function<void()> _backward;
     std::string _op;
+    std::vector<NodePtr> _prev;
+    std::function<void()> _backward;
 
    public:
     // Constructors
-    Node(float data, std::unordered_set<NodePtr> prev = {}, const std::string& op = "");
+    Node(float data, std::vector<NodePtr> prev = {}, const std::string& op = "");
     ~Node();
     // Getters
     float get_data() const;
     float get_grad() const;
     const std::string& get_op() const;
-    const std::unordered_set<NodePtr>& get_prev() const;
+    const std::vector<NodePtr>& get_prev() const;
 
     // Setters
     void set_data(float data);
     void set_grad(float grad) const;
-
-
 
     // Overloaded operators
     NodePtr operator+(const Node& other) const;
@@ -58,4 +58,5 @@ class Node : public std::enable_shared_from_this<Node> {
     NodePtr relu() const;
     void backward();
     std::string print() const;
+    void clear_prev();
 };

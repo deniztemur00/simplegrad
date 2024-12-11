@@ -5,6 +5,7 @@
 void Module::zero_grad() {
     for (auto& param : parameters()) {
         param->set_grad(0.0);
+        param->clear_prev();
     }
 }
 
@@ -26,29 +27,34 @@ Neuron::Neuron(int nin, bool nonlin) : nonlin(nonlin),
     }
 }
 
-NodePtr Neuron::operator()(NodePtrVec& x) {
-    NodePtr out = std::make_shared<Node>(0.0f);
-
-    for (size_t i = 0; i < x.size(); i++) {
-        out = *out + *(*x[i] * *weights[i]);
+NodePtr& Neuron::operator()(NodePtrVec& x) {
+    static NodePtr activation;
+    
+    // Initialize sum with bias
+    NodePtr sum = std::make_shared<Node>(*bias);
+    
+    // Compute weighted sum
+    for (size_t i = 0; i < weights.size(); i++) {
+        sum = *sum + *(*weights[i] * *x[i]);
     }
-    out = *out + *bias;
+
     if (nonlin) {
-        out = out->relu();
+        activation = sum->relu(); 
     }
-    // std::cout << "Neuron output: " << out->get_data() << "\n";
 
-    return out;
+    return activation;
 }
 
-NodePtrVec Neuron::parameters() {
-    NodePtrVec params;
+NodePtrVec& Neuron::parameters() {
+    static NodePtrVec params;
+    params.clear();
     params.reserve(weights.size() + 1);
 
-    for (const auto& weight : weights) {
-        params.emplace_back(weight);
+    for (auto& w : weights) {
+        params.push_back(w);
     }
-    params.emplace_back(bias);
+    params.push_back(bias);
+
     return params;
 }
 
@@ -62,6 +68,28 @@ std::string Neuron::display_params() {
     return ss.str();
 }
 
+void Neuron::clear_weights() {
+    float bias_value = bias->get_data();
+    std::vector<float> weight_values;
+    weight_values.reserve(weights.size());
+    for (const auto& w : weights) {
+        weight_values.push_back(w->get_data());
+    }
+
+    bias.reset();
+    for (auto& w : weights) {
+        w.reset();
+    }
+    weights.clear();
+    std::vector<NodePtr>().swap(weights);
+
+    weights.reserve(weight_values.size());
+    bias = std::make_shared<Node>(bias_value);
+    for (float w_val : weight_values) {
+        weights.push_back(std::make_shared<Node>(w_val));
+    }
+}
+
 // Layer
 
 Layer::Layer(int nin, int nouts) : n_params((nin + 1) * nouts) {
@@ -73,27 +101,27 @@ Layer::Layer(int nin, int nouts) : n_params((nin + 1) * nouts) {
     }
 }
 
-NodePtrVec Layer::operator()(NodePtrVec& x) {
-    NodePtrVec out;
-    out.reserve(neurons.size() + 1);
+NodePtrVec& Layer::operator()(NodePtrVec& x) {
+    static NodePtrVec out;
+    out.clear();
+    out.reserve(neurons.size());
 
     for (auto& neuron : neurons) {
-        out.emplace_back(neuron(x));  // Use neuron's operator() to compute output
+        auto neuron_out = neuron(x);
+        out.emplace_back(neuron_out);
     }
-
     return out;
 }
 
-NodePtrVec Layer::parameters() {
-    NodePtrVec params;
+NodePtrVec& Layer::parameters() {
+    static NodePtrVec params;
+    params.clear();
     params.reserve(n_params + 1);
 
     for (auto& neuron : neurons) {
-        for (auto& param : neuron.parameters()) {
-            params.emplace_back(param);
-        }
+        auto neuron_params = neuron.parameters();
+        params.insert(params.end(), neuron_params.begin(), neuron_params.end());
     }
-
     return params;
 }
 
@@ -107,3 +135,8 @@ std::string Layer::display_params() {
     return ss.str();
 }
 
+void Layer::clear_neurons() {
+    for (auto& neuron : neurons) {
+        neuron.clear_weights();
+    }
+}

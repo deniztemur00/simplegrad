@@ -15,7 +15,7 @@ requirements: .venv
 
 .PHONY: install
 install:
-	$(BIN)/python -m pip install -e py-simplegrad/
+	$(BIN)/python -m pip install .
 
 .PHONY: build
 build: .venv
@@ -27,6 +27,13 @@ build: .venv
 build-release: .venv
 	mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
 	$(MAKE) install
+	
+.PHONY: setup
+setup: .venv
+	rm -rf dist/
+	rm -rf *.egg-info/
+	rm -rf buid/
+	$(BIN)/python setup.py install
 
 .PHONY: test
 test:
@@ -34,12 +41,22 @@ test:
 
 .PHONY: run
 run:
-	$(BIN)/python $(PY_FOLDER)/simplegrad/main.py
+	$(BIN)/python $(PY_FOLDER)/main.py
+
+.PHONY: publish-test
+publish-test:
+	rm -rf dist/
+	rm -rf *.egg-info/
+	rm -rf buid/
+	$(BIN)/python setup.py clean --all
+	$(BIN)/python setup.py sdist bdist_wheel --plat-name "manylinux2014_x86_64"
+	$(BIN)/python -m twine upload --repository testpypi dist/* --verbose --skip-existing
 
 .PHONY: clean
 clean:
 	rm -rf $(VENV)
 	rm -rf build
+	rm -rf dist/
 	rm -rf *.egg-info/
 	rm -rf .pytest_cache/
 	rm -rf .hypothesis/

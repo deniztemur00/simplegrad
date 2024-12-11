@@ -1,17 +1,16 @@
 #include "../include/node.h"
-
-
-// Constructor
-Node::Node(float data, std::unordered_set<NodePtr> prev, const std::string& op)
+static int n_nodes = 0;
+//  Constructor
+Node::Node(float data, std::vector<NodePtr> prev, const std::string& op)
     : data(data), _prev(std::move(prev)), _op(op) {
-    this->_backward = [this] {
-        for (const auto& child : this->_prev) {
-            child->_backward();
-        }
-    };
+    this->_backward = [this] {};
+    ++n_nodes;
 }
 
-Node::~Node() = default;
+Node::~Node() {
+    // std::cout << "Node destroyed: " << n_nodes-- << std::endl;
+    n_nodes--;
+}
 
 float Node::get_data() const {
     return data;
@@ -25,8 +24,12 @@ const std::string& Node::get_op() const {
     return _op;
 }
 
-const std::unordered_set<NodePtr>& Node::get_prev() const {
+const std::vector<NodePtr>& Node::get_prev() const {
     return _prev;
+}
+
+void Node::clear_prev() {
+    _prev.clear();
 }
 
 void Node::set_data(float data) {
@@ -50,13 +53,13 @@ std::string Node::print() const {
 NodePtr Node::operator+(const Node& other) const {
     auto result = std::make_shared<Node>(
         this->data + other.data,
-        std::unordered_set<NodePtr>{
+        std::vector<NodePtr>{
             std::const_pointer_cast<Node>(shared_from_this()),
             std::const_pointer_cast<Node>(other.shared_from_this())},
         "+");
 
     result->_backward = [this, &other, result]() {
-        grad += result->grad;
+        this->grad += result->grad;
         other.grad += result->grad;
     };
     return result;
@@ -77,13 +80,13 @@ NodePtr operator+(float lhs, const Node& rhs) {
 NodePtr Node::operator*(const Node& other) const {
     auto result = std::make_shared<Node>(
         this->data * other.data,
-        std::unordered_set<NodePtr>{
+        std::vector<NodePtr>{
             std::const_pointer_cast<Node>(shared_from_this()),
             std::const_pointer_cast<Node>(other.shared_from_this())},
         "*");
 
     result->_backward = [this, &other, result]() {
-        grad += other.data * result->grad;
+        this->grad += other.data * result->grad;
         other.grad += this->data * result->grad;
     };
     return result;
@@ -104,7 +107,7 @@ NodePtr operator*(float lhs, const Node& rhs) {
 NodePtr Node::operator-() const {
     auto result = std::make_shared<Node>(
         -this->data,
-        std::unordered_set<NodePtr>{
+        std::vector<NodePtr>{
             std::const_pointer_cast<Node>(shared_from_this())},
         "neg");
 
@@ -125,7 +128,7 @@ NodePtr Node::rsub(const Node& other) const {
 NodePtr Node::pow(const Node& other) const {
     auto result = std::make_shared<Node>(
         std::pow(this->data, other.data),
-        std::unordered_set<NodePtr>{
+        std::vector<NodePtr>{
             std::const_pointer_cast<Node>(shared_from_this()),
             std::const_pointer_cast<Node>(other.shared_from_this())},
         "pow");
@@ -141,7 +144,7 @@ NodePtr Node::pow(const Node& other) const {
 NodePtr Node::pow(float exponent) const {
     auto result = std::make_shared<Node>(
         std::pow(this->data + EPSILON, exponent),
-        std::unordered_set<NodePtr>{
+        std::vector<NodePtr>{
             std::const_pointer_cast<Node>(shared_from_this())},
         "pow");
 
@@ -161,51 +164,48 @@ NodePtr Node::rtruediv(const Node& other) const {
 }
 
 NodePtr Node::relu() const {
-    // std::cout<<"data inside relu func: "<<data<<"\n";
-    auto result = std::make_shared<Node>(data > 0 ? data : 0.0,
-                                         std::unordered_set<NodePtr>{
+    const float alpha = 0.2f;  // Leaky ReLU slope for negative values
+    auto result = std::make_shared<Node>(data > 0 ? data : alpha * data,
+                                         std::vector<NodePtr>{
                                              std::const_pointer_cast<Node>(shared_from_this())},
-                                         "ReLU");
+                                         "LeakyReLU");
 
-    result->_backward = [this, result]() {
+    result->_backward = [this, result, alpha]() {
         if (result->data > 0) {
             grad += result->grad;
+        } else {
+            grad += alpha * result->grad;
         }
     };
 
     return result;
 }
 
-/**
- * Computes gradients through backpropagation.
- * Traverses the computation graph in reverse topological order,
- * accumulating gradients for each node.
- */
 void Node::backward() {
-    {
-        std::vector<NodePtr> topo;
-        topo.reserve(10);  // Reserve some space to avoid reallocations
-        std::unordered_set<NodePtr> visited;
+    std::vector<NodePtr> topo;
+    std::unordered_set<NodePtr> visited;
+    topo.reserve(10);
 
-        std::function<void(const NodePtr&)> build_topo = [&](const NodePtr& v) {
-            if (visited.find(v) == visited.end()) {
-                visited.insert(v);
+    std::function<void(const NodePtr&)> build_topo = [&](const NodePtr& v) {
+        if (visited.find(v) == visited.end()) {
+            visited.insert(v);
 
-                for (const auto& child : v->_prev) {
-                    build_topo(child);
-                }
-                topo.emplace_back(v);
+            for (const auto& child : v->_prev) {
+                build_topo(child);
             }
-        };
-
-        build_topo(shared_from_this());
-
-        grad = 1.0;
-
-        for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-            const auto& v = *it;
-            v->_backward();
-            // std::cout << "After Backward: " << v->print() << std::endl; // success.
+            topo.emplace_back(v);
         }
+    };
+
+    build_topo(shared_from_this());
+
+    grad = 1.0;
+
+    for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
+        const auto& v = *it;
+        v->_backward();
+        // std::cout << "After Backward: " << v->print() << std::endl;  // success.
     }
+    topo.clear();
+    visited.clear();
 }
