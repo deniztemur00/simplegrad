@@ -4,11 +4,11 @@ static int n_nodes = 0;
 Node::Node(float data, std::vector<NodePtr> prev, const std::string& op)
     : data(data), _prev(std::move(prev)), _op(op) {
     this->_backward = [this] {};
-    //std::cout << "Node created: " << ++n_nodes << std::endl;
+    ++n_nodes;
 }
 
 Node::~Node() {
-    std::cout << "Node destroyed: " << --n_nodes << std::endl;
+    std::cout << "Node destroyed: " << n_nodes-- << std::endl;
 }
 
 float Node::get_data() const {
@@ -25,6 +25,10 @@ const std::string& Node::get_op() const {
 
 const std::vector<NodePtr>& Node::get_prev() const {
     return _prev;
+}
+
+void Node::clear_prev() {
+    _prev.clear();
 }
 
 void Node::set_data(float data) {
@@ -159,20 +163,23 @@ NodePtr Node::rtruediv(const Node& other) const {
 }
 
 NodePtr Node::relu() const {
-    // std::cout<<"data inside relu func: "<<data<<"\n";
-    auto result = std::make_shared<Node>(data > 0 ? data : 0.0,
+    const float alpha = 0.1f;  // Leaky ReLU slope for negative values
+    auto result = std::make_shared<Node>(data > 0 ? data : alpha * data,
                                          std::vector<NodePtr>{
                                              std::const_pointer_cast<Node>(shared_from_this())},
-                                         "ReLU");
+                                         "LeakyReLU");
 
-    result->_backward = [this, result]() {
+    result->_backward = [this, result, alpha]() {
         if (result->data > 0) {
             grad += result->grad;
+        } else {
+            grad += alpha * result->grad;
         }
     };
 
     return result;
 }
+
 /*
 void Node::backward() {
     std::vector<NodePtr> topo;
@@ -197,35 +204,37 @@ void Node::backward() {
     grad = 1.0;
     for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
         (*it)->_backward();
+        std::cout << "After Backward: " << (*it)->print() << std::endl;
     }
+    topo.clear();
 }
 */
 
 void Node::backward() {
-    {
-        std::vector<NodePtr> topo;
-        std::unordered_set<NodePtr> visited;
-        topo.reserve(10);
+    std::vector<NodePtr> topo;
+    std::unordered_set<NodePtr> visited;
+    topo.reserve(10);
 
-        std::function<void(const NodePtr&)> build_topo = [&](const NodePtr& v) {
-            if (visited.find(v) == visited.end()) {
-                visited.insert(v);
+    std::function<void(const NodePtr&)> build_topo = [&](const NodePtr& v) {
+        if (visited.find(v) == visited.end()) {
+            visited.insert(v);
 
-                for (const auto& child : v->_prev) {
-                    build_topo(child);
-                }
-                topo.emplace_back(v);
+            for (const auto& child : v->_prev) {
+                build_topo(child);
             }
-        };
-
-        build_topo(shared_from_this());
-
-        grad = 1.0;
-
-        for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-            const auto& v = *it;
-            v->_backward();
-            // std::cout << "After Backward: " << v->print() << std::endl; // success.
+            topo.emplace_back(v);
         }
+    };
+
+    build_topo(shared_from_this());
+
+    grad = 1.0;
+
+    for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
+        const auto& v = *it;
+        v->_backward();
+        //std::cout << "After Backward: " << v->print() << std::endl;  // success.
     }
+    topo.clear();
 }
+

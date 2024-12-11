@@ -58,4 +58,5 @@ class Node : public std::enable_shared_from_this<Node> {
     NodePtr relu() const;
     void backward();
     std::string print() const;
+    void clear_prev();
 };
