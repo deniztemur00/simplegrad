@@ -1,7 +1,5 @@
 #include "../include/mlp.h"
 
-static int n_instances = 0;
-
 MLP::MLP(int nin, std::vector<int> nouts) : n_params(0) {
     layers.reserve(nouts.size() + 1);
     layers.emplace_back(Layer(nin, nouts[0]));
@@ -16,16 +14,37 @@ MLP::MLP(int nin, std::vector<int> nouts) : n_params(0) {
 NodePtrVec MLP::operator()(NodePtrVec& x) {
     for (auto& layer : layers) {
         x = layer(x);
-        // std::cout << "Layer output: " << x.size() << "\n";
     }
-
     return x;
 }
 
 NodePtrVec MLP::operator()(const pybind11::array_t<float>& x) {
+    if (!x.ptr()) {
+        throw std::invalid_argument("Input array is null");
+    }
+
+    if (x.size() == 0) {
+        throw std::length_error("Input array is empty");
+    }
+
+    if (x.ndim() != 1) {
+        throw std::domain_error(
+            "Expected 1D array, got " +
+            std::to_string(x.ndim()) + "D array");
+    }
+
     auto buf = x.unchecked<1>();
+
+    if (buf.shape(0) != layers[0].input_size(0)) {
+        throw std::length_error(
+            "Input dimension mismatch: expected " +
+            std::to_string(layers[0].input_size(0)) +
+            " but got " + std::to_string(buf.shape(0)));
+    }
+
     NodePtrVec inputs;
     inputs.reserve(buf.shape(0));
+
     for (pybind11::ssize_t i = 0; i < buf.shape(0); i++) {
         inputs.emplace_back(std::make_shared<Node>(buf(i)));
     }
@@ -61,15 +80,22 @@ void MLP::step(float lr) {
         float old_data = param->get_data();
         float new_data = old_data - lr * grad;
 
-        //std::cout << "Parameter update:\n";
-        //std::cout << "  grad: " << grad << "\n";
-        //std::cout << "  lr * grad: " << (lr * grad) << "\n";
-        //std::cout << "  old value: " << old_data << "\n";
-        //std::cout << "  new value: " << new_data << "\n";
-        //std::cout << "-------------------\n";
+        // std::cout << "Parameter update:\n";
+        // std::cout << "  grad: " << grad << "\n";
+        // std::cout << "  lr * grad: " << (lr * grad) << "\n";
+        // std::cout << "  old value: " << old_data << "\n";
+        // std::cout << "  new value: " << new_data << "\n";
+        // std::cout << "-------------------\n";
 
         param->set_data(new_data);
         param->set_grad(0.0);
         param->clear_prev();
     }
+}
+
+MLP::~MLP() {
+    for (auto& layer : layers) {
+        layer.clear_neurons();
+    }
+    layers.clear();
 }
