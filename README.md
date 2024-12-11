@@ -2,6 +2,8 @@
 
 SimpleGrad is a lightweight automatic differentiation library written in C++ with Python bindings.
 
+https://pypi.org/project/simplegrad/
+
 ## Prerequisites
 
 - Python 3.10 or higher
