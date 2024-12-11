@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="simplegrad",
-    version="0.0.45",
+    version="0.0.2",
     description="Automatic differentiation library for basic arithmetic operations",
     author="Deniz",
     url="https://github.com/deniztemur00/simplegrad.git",
