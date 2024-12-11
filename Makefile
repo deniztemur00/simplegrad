@@ -52,6 +52,15 @@ publish-test:
 	$(BIN)/python setup.py sdist bdist_wheel --plat-name "manylinux2014_x86_64"
 	$(BIN)/python -m twine upload --repository testpypi dist/* --verbose --skip-existing
 
+.PHONY: publish
+publish:
+	rm -rf dist/
+	rm -rf *.egg-info/
+	rm -rf buid/
+	$(BIN)/python setup.py clean --all
+	$(BIN)/python setup.py sdist bdist_wheel --plat-name "manylinux2014_x86_64"
+	$(BIN)/python -m twine upload dist/* --verbose --skip-existing
+
 .PHONY: clean
 clean:
 	rm -rf $(VENV)
