@@ -9,7 +9,7 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(simplegrad, m) {
-    m.doc() = "Automatic differentation module written in C++";  // Module docstring
+    m.doc() = "Automatic differentation module written in C++";
     py::class_<Node, NodePtr>(m, "Node")
         .def(py::init<float>())
         .def("__repr__", &Node::print)
