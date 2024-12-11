@@ -33,16 +33,15 @@ NodePtrVec MLP::operator()(const pybind11::array_t<float>& x) {
     return operator()(inputs);
 }
 
-NodePtrVec MLP::parameters() {
-    NodePtrVec params;
+NodePtrVec& MLP::parameters() {
+    static NodePtrVec params;
+    params.clear();
     params.reserve(n_params + 1);
 
     for (auto& layer : layers) {
-        for (auto& param : layer.parameters()) {
-            params.emplace_back(param);
-        }
+        auto layer_params = layer.parameters();
+        params.insert(params.end(), layer_params.begin(), layer_params.end());
     }
-
     return params;
 }
 
@@ -57,9 +56,20 @@ std::string MLP::display_params() {
 }
 
 void MLP::step(float lr) {
-    auto params = parameters();
-    for (auto& param : params) {
-        float new_data = param->get_data() - lr * param->get_grad();
+    for (auto& param : parameters()) {
+        float grad = param->get_grad();
+        float old_data = param->get_data();
+        float new_data = old_data - lr * grad;
+
+        //std::cout << "Parameter update:\n";
+        //std::cout << "  grad: " << grad << "\n";
+        //std::cout << "  lr * grad: " << (lr * grad) << "\n";
+        //std::cout << "  old value: " << old_data << "\n";
+        //std::cout << "  new value: " << new_data << "\n";
+        //std::cout << "-------------------\n";
+
         param->set_data(new_data);
+        param->set_grad(0.0);
+        param->clear_prev();
     }
 }
