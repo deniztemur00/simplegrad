@@ -11,11 +11,14 @@ MLP::MLP(int nin, std::vector<int> nouts) : n_params(0) {
     }
 }
 
-NodePtrVec MLP::operator()(NodePtrVec& x) {
+NodePtrVec& MLP::operator()(NodePtrVec& x) {
+    static NodePtrVec out;
+    out = x;
+    
     for (auto& layer : layers) {
-        x = layer(x);
+        out = layer(out);
     }
-    return x;
+    return out;
 }
 
 NodePtrVec MLP::operator()(const pybind11::array_t<float>& x) {
