@@ -37,7 +37,6 @@ NodePtr Neuron::operator()(NodePtrVec& x) {
     if (nonlin) {
         out = out->relu();
     }
-    // std::cout << "Neuron output: " << out->get_data() << "\n";
 
     return out;
 }
@@ -46,12 +45,12 @@ NodePtrVec& Neuron::parameters() {
     static NodePtrVec params;
     params.clear();
     params.reserve(weights.size() + 1);
-    
+
     for (auto& w : weights) {
         params.push_back(w);
     }
     params.push_back(bias);
-    
+
     return params;
 }
 
@@ -63,6 +62,28 @@ std::string Neuron::display_params() {
     }
     ss << "b = " << bias->get_data() << ")\n";
     return ss.str();
+}
+
+void Neuron::clear_weights() {
+    float bias_value = bias->get_data();
+    std::vector<float> weight_values;
+    weight_values.reserve(weights.size());
+    for (const auto& w : weights) {
+        weight_values.push_back(w->get_data());
+    }
+
+    bias.reset();
+    for (auto& w : weights) {
+        w.reset();
+    }
+    weights.clear();
+    std::vector<NodePtr>().swap(weights);
+
+    weights.reserve(weight_values.size());
+    bias = std::make_shared<Node>(bias_value);
+    for (float w_val : weight_values) {
+        weights.push_back(std::make_shared<Node>(w_val));
+    }
 }
 
 // Layer
@@ -81,7 +102,7 @@ NodePtrVec Layer::operator()(NodePtrVec& x) {
     out.reserve(neurons.size() + 1);
 
     for (auto& neuron : neurons) {
-        out.emplace_back(neuron(x));  // Use neuron's operator() to compute output
+        out.emplace_back(neuron(x)); 
     }
 
     return out;
@@ -109,3 +130,8 @@ std::string Layer::display_params() {
     return ss.str();
 }
 
+void Layer::clear_neurons() {
+    for (auto& neuron : neurons) {
+        neuron.clear_weights();
+    }
+}
