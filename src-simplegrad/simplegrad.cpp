@@ -8,23 +8,18 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(simplegrad, m) {
+PYBIND11_MODULE(_simplegrad, m) {
     m.doc() = "Automatic differentation module written in C++";
     py::class_<Node, NodePtr>(m, "Node")
         .def(py::init<float>())
         .def("__repr__", &Node::print)
-        .def("backward", &Node::backward,
-             "Computes gradients through backpropagation.")
-        .def("relu", &Node::relu,
-             "Applies ReLU activation function.")
-        .def("data", &Node::get_data,
-             "Returns the data stored in the node.")
-        .def("grad", &Node::get_grad,
-             "Returns the gradient stored in the node.")
-        .def("prev", &Node::get_prev,
-             "Returns the previous nodes.")
-        .def("op", &Node::get_op,
-             "Returns the operation performed to get the node.")
+        .def("backward", &Node::backward)
+        .def("relu", &Node::relu)
+        .def("data", &Node::get_data)
+        .def("clear_prev", &Node::clear_prev)
+        .def("grad", &Node::get_grad)
+        .def("prev", &Node::get_prev)
+        .def("op", &Node::get_op)
         .def(py::self + py::self)
         .def(py::self + float())
         .def(float() + py::self)
@@ -53,6 +48,7 @@ PYBIND11_MODULE(simplegrad, m) {
              py::arg("nonlin") = true)
         .def("__call__", &Neuron::operator())
         .def("parameters", &Neuron::parameters)
+        .def("clear_weights", &Neuron::clear_weights)
         .def("__repr__", &Neuron::display_params);
 
     // Bind Layer class
@@ -60,6 +56,9 @@ PYBIND11_MODULE(simplegrad, m) {
         .def(py::init<int, int>())
         .def("__call__", &Layer::operator())
         .def("parameters", &Layer::parameters)
+        .def("clear_neurons", &Layer::clear_neurons)
+        .def("size", &Layer::size)
+        .def("input_size", &Layer::input_size)
         .def("__repr__", &Layer::display_params);
 
     // Bind MLP class

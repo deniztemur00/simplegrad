@@ -1,7 +1,5 @@
 from simplegrad import Node, MLP
 from sklearn import datasets
-from memory_profiler import profile
-import gc
 
 
 def print_layer_values(nodes):

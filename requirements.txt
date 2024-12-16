@@ -1,6 +1,5 @@
 setuptools
 pytest
 hypothesis
-numpy
 scikit-learn
 twine

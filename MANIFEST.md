@@ -2,26 +2,14 @@
 
 SimpleGrad is a lightweight automatic differentiation library written in C++ with Python bindings.
 
-https://pypi.org/project/simplegrad/
+### Compatible Operating Systems:
+- Linux (x86_64 architecture only)
 
-## Prerequisites
-
-- Python 3.10 or higher
-- g++/gcc with C++17 support
-- CMake 3.12 or higher
-- pybind11
-
-## Build & Installation
-
-1. Clone the repository:
+## Installation
 ```bash
-git clone https://github.com/deniztemur00/simplegrad.git
-cd simplegrad
+pip install simplegrad
 ```
-2. Build with makefile:
-```bash
-make build-release
-```
+
 ## Features
 
 - Multi-layer perceptron (MLP) which can be used for regression and classification tasks
@@ -47,15 +35,13 @@ X, y = datasets.make_classification(
         n_classes=2,
         random_state=42,  # for reproducibility
     )
-
-
 lr = 0.01
 batch_size = 16
 epochs = 10
 
 # Define the model
 model = MLP(
-    10, [12, 1]
+    10, [16, 1]
 )  # 2 input nodes, 2 hidden layers with arbitrary sizes, 1 output node
 
 # Training data
@@ -81,27 +67,12 @@ for epoch in range(epochs):
             loss.backward()
 
         model.step(lr)  # Update weights using accumulated gradients
+        del loss, y_hat, y_true  # Clean up
         epoch_loss += batch_loss
 
     # Average loss over all batches
     print(f"Epoch {epoch+1}, Average Loss: {epoch_loss/n_batches:.3f}")
 ```
-You can execute the above code by running the following command:
-```bash
-make run
-```
 
-## Testing
-Tests are written to ensure the correctness of the Node class. Thus making sure MLP works as expected. You can run tests with following command:
-```bash
-make test
-```
-## License
-
-This project is licensed under the MIT License.
-
-## Acknowledgements
-
-This project was inspired by the [micrograd](https://github.com/karpathy/micrograd) project by Andrej Karpathy. 
 
 
