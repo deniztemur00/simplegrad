@@ -2,7 +2,6 @@
 
 SimpleGrad is a lightweight automatic differentiation library written in C++ with Python bindings.
 
-https://pypi.org/project/simplegrad/
 
 ## Prerequisites
 
@@ -20,7 +19,7 @@ cd simplegrad
 ```
 2. Build with makefile:
 ```bash
-make build-release
+make build-python
 ```
 ## Features
 
@@ -103,5 +102,11 @@ This project is licensed under the MIT License.
 ## Acknowledgements
 
 This project was inspired by the [micrograd](https://github.com/karpathy/micrograd) project by Andrej Karpathy. 
+
+## TODO
+
+ - Compile and build for other platforms
+ - Publish on pypi
+ - Cyclic reference optimization
 
 
