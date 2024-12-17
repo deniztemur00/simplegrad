@@ -22,6 +22,14 @@ build: .venv
 	mkdir -p build && cd build && cmake .. && make
 	$(MAKE) install
 
+.PHONY: build-python
+build-python: .venv
+	$(BIN)/python -m pip uninstall -y simplegrad
+	$(MAKE) clean
+	$(BIN)/python setup.py sdist bdist_wheel --plat-name "manylinux2014_x86_64"
+	$(BIN)/python -m pip install .
+
+
 
 .PHONY: build-release
 build-release: .venv
@@ -63,7 +71,7 @@ publish:
 
 .PHONY: clean
 clean:
-	rm -rf $(VENV)
+#	rm -rf $(VENV)
 	rm -rf build
 	rm -rf dist/
 	rm -rf *.egg-info/
@@ -77,6 +85,7 @@ help:
 	@echo "  make install        - Install the package in editable mode"
 	@echo "  make build          - Build the project"
 	@echo "  make build-release  - Build the project in release mode"
+	@echo "  make build-python   - Build the project in release mode and install it"
 	@echo "  make test           - Run tests using pytest"
 	@echo "  make run            - Run the main Python script"
 	@echo "  make clean          - Clean up the build and virtual environment"
