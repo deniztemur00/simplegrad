@@ -5,10 +5,9 @@ SimpleGrad is a lightweight automatic differentiation library written in C++ wit
 
 ## Prerequisites
 
-- Python 3.10 or higher
-- g++/gcc with C++17 support
-- CMake 3.12 or higher
-- pybind11
+- Python >= 3.6
+- g++/gcc
+- CMake
 
 ## Build & Installation
 
