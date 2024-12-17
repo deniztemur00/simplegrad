@@ -25,7 +25,7 @@ jobs:
         
     - name: Build
       run: |
-        make build-release
+        make build-python
         
     - name: Test
       run: |
