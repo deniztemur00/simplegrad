@@ -2,4 +2,4 @@ include MANIFEST.md
 include py-simplegrad/simplegrad-dev/simplegrad.pyi
 include py-simplegrad/simplegrad-dev/py.typed
 include py-simplegrad/simplegrad-dev/__init__.py
-include py-simplegrad/simplegrad-dev/simplegrad.cpython-312-x86_64-linux-gnu.so
+include buid/*.so
