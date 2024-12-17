@@ -1,4 +1,5 @@
 setuptools
+pybind11
 pytest
 hypothesis
 scikit-learn
