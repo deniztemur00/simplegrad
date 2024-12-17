@@ -38,10 +38,9 @@ def get_ext_modules():
             pybind11.get_include(),
             os.path.join(os.path.dirname(__file__), "src-simplegrad", "include"),
         ]
-
         ext = Extension(
-            "simplegrad._simplegrad",
-            cpp_sources,
+            name="simplegrad._simplegrad",
+            sources=cpp_sources,
             include_dirs=include_dirs,
             language="c++",
             extra_compile_args=get_compiler_flags(),
@@ -55,7 +54,7 @@ def get_ext_modules():
 
 setup(
     name="simplegrad",
-    version="0.0.54",
+    version="0.0.56",
     description="Automatic differentiation library for basic arithmetic operations",
     author="Deniz",
     url="https://github.com/deniztemur00/simplegrad.git",
@@ -66,14 +65,8 @@ setup(
     requires=["pybind11"],
     ext_modules=get_ext_modules(),
     package_data={
-        "simplegrad": ["*.pyi", "*.so","*.pyd","*.dll","*.lib"],
+        "simplegrad": ["*.pyi", "py.typed", "*.so", "*.pyd", "*.py"],
     },
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: POSIX :: Linux",
-    ],
-    license="MIT",
+    include_package_data=True,
     python_requires=">=3.6",
 )
-
