@@ -104,8 +104,8 @@ This project was inspired by the [micrograd](https://github.com/karpathy/microgr
 
 ## TODO
 
- - Compile and build for other platforms
- - Publish on pypi
- - Cyclic reference optimization
+ - Compile and build for other platforms (DONE)
+ - Publish on pypi (DONE)
+ - Cyclic reference optimization (DONE)
 
 
