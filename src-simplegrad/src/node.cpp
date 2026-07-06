@@ -58,9 +58,10 @@ NodePtr Node::operator+(const Node& other) const {
             std::const_pointer_cast<Node>(other.shared_from_this())},
         "+");
 
-    result->_backward = [this, &other, result]() {
-        this->grad += result->grad;
-        other.grad += result->grad;
+    Node* res = result.get();
+    result->_backward = [this, &other, res]() {
+        this->grad += res->grad;
+        other.grad += res->grad;
     };
     return result;
 }
@@ -85,9 +86,10 @@ NodePtr Node::operator*(const Node& other) const {
             std::const_pointer_cast<Node>(other.shared_from_this())},
         "*");
 
-    result->_backward = [this, &other, result]() {
-        this->grad += other.data * result->grad;
-        other.grad += this->data * result->grad;
+    Node* res = result.get();
+    result->_backward = [this, &other, res]() {
+        this->grad += other.data * res->grad;
+        other.grad += this->data * res->grad;
     };
     return result;
 }
@@ -111,8 +113,9 @@ NodePtr Node::operator-() const {
             std::const_pointer_cast<Node>(shared_from_this())},
         "neg");
 
-    result->_backward = [this, result]() {
-        grad -= result->grad;
+    Node* res = result.get();
+    result->_backward = [this, res]() {
+        grad -= res->grad;
     };
     return result;
 }
@@ -133,9 +136,10 @@ NodePtr Node::pow(const Node& other) const {
             std::const_pointer_cast<Node>(other.shared_from_this())},
         "pow");
 
-    result->_backward = [this, &other, result]() {
-        grad += other.data * std::pow(this->data, other.data - 1) * result->grad;
-        other.grad += std::pow(this->data, other.data) * std::log(this->data) * result->grad;
+    Node* res = result.get();
+    result->_backward = [this, &other, res]() {
+        grad += other.data * std::pow(this->data, other.data - 1) * res->grad;
+        other.grad += std::pow(this->data, other.data) * std::log(this->data) * res->grad;
     };
 
     return result;
@@ -148,8 +152,9 @@ NodePtr Node::pow(float exponent) const {
             std::const_pointer_cast<Node>(shared_from_this())},
         "pow");
 
-    result->_backward = [this, result, exponent]() {
-        grad += exponent * std::pow(this->data + EPSILON, exponent - 1) * result->grad;
+    Node* res = result.get();
+    result->_backward = [this, res, exponent]() {
+        grad += exponent * std::pow(this->data + EPSILON, exponent - 1) * res->grad;
     };
 
     return result;
@@ -170,11 +175,12 @@ NodePtr Node::relu() const {
                                              std::const_pointer_cast<Node>(shared_from_this())},
                                          "LeakyReLU");
 
-    result->_backward = [this, result, alpha]() {
-        if (result->data > 0) {
-            grad += result->grad;
+    Node* res = result.get();
+    result->_backward = [this, res, alpha]() {
+        if (res->data > 0) {
+            grad += res->grad;
         } else {
-            grad += alpha * result->grad;
+            grad += alpha * res->grad;
         }
     };
 
