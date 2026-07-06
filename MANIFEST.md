@@ -3,7 +3,12 @@
 SimpleGrad is a lightweight automatic differentiation library written in C++ with Python bindings.
 
 ### Compatible Operating Systems:
-- Linux (x86_64 architecture only)
+- Linux (x86_64, aarch64)
+- Windows (x86_64)
+- macOS (x86_64, arm64)
+
+Prebuilt wheels are provided for CPython 3.9–3.13. On other platforms, pip
+builds from source, which requires a C++17 compiler.
 
 ## Installation
 ```bash

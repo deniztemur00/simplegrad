@@ -1,6 +1,7 @@
 setuptools
 pybind11
 wheel
+build
 pytest
 hypothesis
 scikit-learn

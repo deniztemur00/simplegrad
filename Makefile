@@ -26,7 +26,6 @@ build: .venv
 build-python: .venv
 	$(BIN)/python -m pip uninstall -y simplegrad
 	$(MAKE) clean
-	$(BIN)/python setup.py sdist bdist_wheel --plat-name "manylinux2014_x86_64"
 	$(BIN)/python -m pip install .
 
 
@@ -51,22 +50,20 @@ test:
 run:
 	$(BIN)/python $(PY_FOLDER)/main.py
 
+# Local publishing uploads the sdist only. Platform wheels are built and
+# published by CI (.github/workflows/wheels.yml) on version tags (v*).
 .PHONY: publish-test
 publish-test:
 	rm -rf dist/
 	rm -rf *.egg-info/
-	rm -rf buid/
-	$(BIN)/python setup.py clean --all
-	$(BIN)/python setup.py sdist bdist_wheel --plat-name "manylinux2014_x86_64"
+	$(BIN)/python -m build --sdist
 	$(BIN)/python -m twine upload --repository testpypi dist/* --verbose --skip-existing
 
 .PHONY: publish
 publish:
 	rm -rf dist/
 	rm -rf *.egg-info/
-	rm -rf buid/
-	$(BIN)/python setup.py clean --all
-	$(BIN)/python setup.py sdist bdist_wheel --plat-name "manylinux2014_x86_64"
+	$(BIN)/python -m build --sdist
 	$(BIN)/python -m twine upload dist/* --verbose --skip-existing
 
 .PHONY: clean

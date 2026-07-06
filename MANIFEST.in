@@ -1,5 +1,9 @@
 include MANIFEST.md
+include README.md
+include pyproject.toml
+recursive-include src-simplegrad *.cpp *.h
 include py-simplegrad/simplegrad-dev/simplegrad.pyi
 include py-simplegrad/simplegrad-dev/py.typed
-include py-simplegrad/simplegrad-dev/__init__.py
-include buid/*.so
+global-exclude *.pyd *.so *.pyc
+prune build
+prune dist

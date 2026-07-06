@@ -1,72 +1,34 @@
-from setuptools import setup, Extension
 import sys
-import os
 
-# Define package metadata and extensions
+from pybind11.setup_helpers import Pybind11Extension, build_ext
+from setuptools import setup
+
 cpp_sources = [
-    os.path.join("src-simplegrad", "simplegrad.cpp"),
-    os.path.join("src-simplegrad", "src", "node.cpp"),
-    os.path.join("src-simplegrad", "src", "mlp.cpp"),
-    os.path.join("src-simplegrad", "src", "net.cpp"),
+    "src-simplegrad/simplegrad.cpp",
+    "src-simplegrad/src/node.cpp",
+    "src-simplegrad/src/mlp.cpp",
+    "src-simplegrad/src/net.cpp",
 ]
 
+# No -march=native / -ffast-math: wheels must run on any CPU and keep
+# IEEE float semantics. Pybind11Extension already adds /O2 or -O2-level
+# defaults, -fvisibility=hidden, and the C++ standard flag.
+extra_compile_args = [] if sys.platform == "win32" else ["-O3", "-funroll-loops"]
 
-def get_compiler_flags():
-    if sys.platform.startswith("win"):
-        return [
-            "/std:c++17",  # C++17 standard
-            "/O2",  # Optimize for speed
-            "/GL",  # Whole program optimization
-            "/MD",  # Multi-threaded DLL runtime
-            "/EHsc",  # Exception handling
-            "/DNDEBUG",  # Disable debug
-        ]
-    else:
-        flags = ["-std=c++17", "-fvisibility=hidden", "-O3", "-DNDEBUG"]
-        if sys.platform.startswith("linux"):
-            flags.extend(
-                ["-march=native", "-ffast-math", "-flto", "-funroll-loops", "-fPIC"]
-            )
-        return flags
-
-
-def get_ext_modules():
-    try:
-        import pybind11
-
-        include_dirs = [
-            pybind11.get_include(),
-            os.path.join(os.path.dirname(__file__), "src-simplegrad", "include"),
-        ]
-        ext = Extension(
-            name="simplegrad._simplegrad",
-            sources=cpp_sources,
-            include_dirs=include_dirs,
-            language="c++",
-            extra_compile_args=get_compiler_flags(),
-            extra_link_args=["/DLL"] if sys.platform.startswith("win") else ["-flto"],
-        )
-        return [ext]
-    except ImportError:
-        print("pybind11 is not installed.")
-        return []
-
+ext_modules = [
+    Pybind11Extension(
+        "simplegrad._simplegrad",
+        sources=cpp_sources,
+        include_dirs=["src-simplegrad/include"],
+        cxx_std=17,
+        extra_compile_args=extra_compile_args,
+    )
+]
 
 setup(
-    name="simplegrad",
-    version="0.0.56",
-    description="Automatic differentiation library for basic arithmetic operations",
-    author="Deniz",
-    url="https://github.com/deniztemur00/simplegrad.git",
-    long_description=open("MANIFEST.md").read(),
-    long_description_content_type="text/markdown",
     package_dir={"simplegrad": "py-simplegrad/simplegrad-dev"},
     packages=["simplegrad"],
-    requires=["pybind11"],
-    ext_modules=get_ext_modules(),
-    package_data={
-        "simplegrad": ["*.pyi", "py.typed", "*.so", "*.pyd", "*.py"],
-    },
-    include_package_data=True,
-    python_requires=">=3.6",
+    package_data={"simplegrad": ["simplegrad.pyi", "py.typed"]},
+    ext_modules=ext_modules,
+    cmdclass={"build_ext": build_ext},
 )
