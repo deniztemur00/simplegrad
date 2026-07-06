@@ -18,8 +18,7 @@ jobs:
           - ubuntu-latest # Linux x86_64 (manylinux)
           - ubuntu-24.04-arm # Linux aarch64 (manylinux)
           - windows-latest # Windows x86_64
-          - macos-13 # macOS x86_64
-          - macos-latest # macOS arm64
+          - macos-latest # macOS arm64 + cross-compiled x86_64
 
     steps:
       - uses: actions/checkout@v4

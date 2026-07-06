@@ -25,8 +25,11 @@ Source = "https://github.com/deniztemur00/simplegrad"
 
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
-skip = "pp* *musllinux*"
+skip = "*musllinux*"
 test-command = 'python -c "from simplegrad import Node, MLP; a = Node(2.0); b = Node(3.0); c = a * b; c.backward(); assert abs(a.grad() - 3.0) < 1e-6"'
 
 [tool.cibuildwheel.macos]
+# GitHub retired Intel macOS runners; build x86_64 by cross-compiling on
+# the arm64 runner (x86_64 wheels are still tested there via Rosetta 2).
+archs = ["arm64", "x86_64"]
 environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
