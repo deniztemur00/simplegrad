@@ -9,16 +9,15 @@ SimpleGrad is a lightweight automatic differentiation library written in C++ wit
 - g++/gcc
 - CMake
 
-## Build & Installation
+## Installation
 
-1. Clone the repository:
+1. If you are using uv (preferred), you can add SimpleGrad to your project by running the following command:
 ```bash
-git clone https://github.com/deniztemur00/simplegrad.git
-cd simplegrad
+uv add simplegrad
 ```
-2. Build with makefile:
+2. Install via pip:
 ```bash
-make build-python
+pip install simplegrad
 ```
 ## Features
 
