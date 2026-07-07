@@ -5,7 +5,7 @@ SimpleGrad is a lightweight automatic differentiation library written in C++ wit
 
 ## Prerequisites
 
-- Python >= 3.6
+- Python >= 3.9
 
 Prebuilt wheels are published to PyPI for all major platforms (Linux, macOS, and Windows), so no C++ compiler or build tools are required to install SimpleGrad.
 
@@ -97,7 +97,7 @@ make test
 
 If you want to build SimpleGrad from source or contribute to the project, you'll need the C++ toolchain in addition to Python:
 
-- Python >= 3.6
+- Python >= 3.9
 - g++/gcc
 - CMake
 
