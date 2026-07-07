@@ -6,8 +6,8 @@ SimpleGrad is a lightweight automatic differentiation library written in C++ wit
 ## Prerequisites
 
 - Python >= 3.6
-- g++/gcc
-- CMake
+
+Prebuilt wheels are published to PyPI for all major platforms (Linux, macOS, and Windows), so no C++ compiler or build tools are required to install SimpleGrad.
 
 ## Installation
 
@@ -93,6 +93,24 @@ Tests are written to ensure the correctness of the Node class. Thus making sure 
 ```bash
 make test
 ```
+## Development
+
+If you want to build SimpleGrad from source or contribute to the project, you'll need the C++ toolchain in addition to Python:
+
+- Python >= 3.6
+- g++/gcc
+- CMake
+
+Build the extension locally and run the example or the tests with:
+
+```bash
+make build   # configure with CMake, compile, and install into the local venv
+make run     # run the example script (py-simplegrad/main.py)
+make test    # run the test suite with pytest
+```
+
+Run `make help` to see all available commands.
+
 ## License
 
 This project is licensed under the MIT License.
